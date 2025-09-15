@@ -11,5 +11,6 @@ type Absence struct {
 	Type    AbsenceType `gorm:"type:varchar(20);not null"`
 	Date    time.Time   `gorm:"not null"`
 	Student Student     `gorm:"foreignKey:StudentID"`
-	Subject Subject     `gorm:"foreignKey:SubjectID"`
+	//StudentID   uint
+	Subject Subject `gorm:"foreignKey:SubjectID"`
 }
