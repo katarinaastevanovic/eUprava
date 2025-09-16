@@ -10,3 +10,5 @@ type Request struct {
 	Status          TypeOfRequest     `gorm:"type:varchar(20);not null"`
 	Examinations    []Examination     `gorm:"foreignKey:RequestID"`
 }
+
+//
