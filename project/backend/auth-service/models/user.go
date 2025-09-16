@@ -12,5 +12,5 @@ type Member struct {
 	Email    string `gorm:"size:100;unique;not null"`
 	Username string `gorm:"size:50;unique;not null"`
 	Password string `gorm:"size:255;not null"`
-	Role     string `gorm:"size:50;not null"`
+	Role     Role   `gorm:"type:varchar(20);not null"`
 }
