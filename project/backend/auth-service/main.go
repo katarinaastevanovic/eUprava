@@ -1,25 +1,22 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
-	"os"
+
+	"auth-service/database"
+	"auth-service/handlers"
 )
 
 func main() {
+	database.Connect()
 
-	port := "8080"
-	if p := os.Getenv("PORT"); p != "" {
-		port = p
-	}
+	mux := http.NewServeMux()
+	mux.HandleFunc("/register", handlers.RegisterHandler)
+	//mux.HandleFunc("/login", handlers.LoginHandler)
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Auth service is running!")
-	})
-
-	log.Printf("🚀 Auth service listening on port %s\n", port)
-	if err := http.ListenAndServe(":"+port, nil); err != nil {
+	log.Println("🚀 Auth service listening on port 8080")
+	if err := http.ListenAndServe(":8080", mux); err != nil {
 		log.Fatal(err)
 	}
 }
