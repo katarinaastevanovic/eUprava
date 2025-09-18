@@ -13,6 +13,8 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/register", handlers.RegisterHandler)
+	mux.HandleFunc("/api/check-username", handlers.CheckUsernameHandler)
+
 	//mux.HandleFunc("/login", handlers.LoginHandler)
 
 	log.Println("🚀 Auth service listening on port 8080")
