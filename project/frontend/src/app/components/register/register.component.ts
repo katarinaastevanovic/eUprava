@@ -55,11 +55,28 @@ export class RegisterComponent {
   }
 
   onSubmit() {
-    if (this.registerForm.valid) {
-      console.log(this.registerForm.value);
-      // HttpClient POST → backend
-    } else {
-      this.registerForm.markAllAsTouched();
-    }
+  if (this.registerForm.valid) {
+    this.http.post('http://localhost:8080/register', this.registerForm.value, { responseType: 'text' })
+      .subscribe({
+        next: (res) => {
+          console.log('✅ Registracija uspela:', res);
+          alert('Korisnik uspešno registrovan!');
+          this.registerForm.reset();
+        },
+        error: (err) => {
+          console.error('❌ Greška:', err);
+          if (err.status === 409) {
+            alert('Podaci moraju biti jedinstveni (UMCN, email ili username već postoje).');
+          } else if (err.status === 400) {
+            alert('Neispravan unos: ' + err.error);
+          } else {
+            alert('Došlo je do greške na serveru.');
+          }
+        }
+      });
+  } else {
+    this.registerForm.markAllAsTouched();
   }
+}
+
 }
