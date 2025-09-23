@@ -1,0 +1,7 @@
+# Firebase service account
+backend/auth-service/serviceAccountKey.json
+
+# Node modules
+node_modules/
+
+
