@@ -17,13 +17,13 @@ func Connect() {
 	var err error
 	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatal("❌ Failed to connect to database: ", err)
+		log.Fatal("Failed to connect to database: ", err)
 	}
 
 	err = DB.AutoMigrate(&models.Member{})
 	if err != nil {
-		log.Fatal("❌ Failed to migrate database: ", err)
+		log.Fatal("Failed to migrate database: ", err)
 	}
 
-	log.Println("✅ Database connected and migrated")
+	log.Println("Database connected and migrated")
 }
