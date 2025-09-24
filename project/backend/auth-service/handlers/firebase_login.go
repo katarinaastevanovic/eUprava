@@ -5,6 +5,7 @@ import (
 	"auth-service/firebase"
 	"auth-service/models"
 	"auth-service/services"
+	"bytes"
 	"context"
 	"encoding/json"
 	"log"
@@ -85,8 +86,19 @@ func CompleteProfileHandler(w http.ResponseWriter, r *http.Request) {
 		Name     string `json:"name"`
 		LastName string `json:"lastName"`
 		UMCN     string `json:"umcn"`
+		Role     string `json:"role"`
 	}
-	json.NewDecoder(r.Body).Decode(&req)
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	birthDate, gender, err := services.ParseUMCN(req.UMCN)
+	if err != nil {
+		http.Error(w, "Invalid UMCN", http.StatusBadRequest)
+		return
+	}
 
 	user := models.Member{
 		FirebaseUID: req.UID,
@@ -95,11 +107,22 @@ func CompleteProfileHandler(w http.ResponseWriter, r *http.Request) {
 		Name:        req.Name,
 		LastName:    req.LastName,
 		UMCN:        req.UMCN,
-		Role:        "user",
+		Role:        models.Role(req.Role),
+		BirthDate:   birthDate,
+		Gender:      gender,
 	}
 
-	database.DB.Create(&user)
+	if err := database.DB.Create(&user).Error; err != nil {
+		http.Error(w, "Failed to save user", http.StatusInternalServerError)
+		return
+	}
 
-	jwtToken, _ := services.GenerateJWT(user.ID, user.Username, string(user.Role))
-	json.NewEncoder(w).Encode(map[string]string{"token": jwtToken})
+	body, _ := json.Marshal(map[string]interface{}{"userId": user.ID})
+	if resp, err := http.Post("http://medical-service:8082/medical-records", "application/json", bytes.NewBuffer(body)); err != nil || resp.StatusCode != http.StatusCreated {
+		http.Error(w, "User created but failed to create medical record", http.StatusAccepted)
+		return
+	}
+
+	token, _ := services.GenerateJWT(user.ID, user.Username, string(user.Role))
+	json.NewEncoder(w).Encode(map[string]string{"token": token})
 }
