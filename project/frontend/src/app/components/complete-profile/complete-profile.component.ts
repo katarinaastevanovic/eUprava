@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../services/auth/auth.service';
 
@@ -20,7 +20,6 @@ export class CompleteProfileComponent {
   role = ''; 
   roles = ['STUDENT', 'TEACHER', 'DOCTOR', 'PARENT']; 
   error = '';
-  token = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -31,7 +30,12 @@ export class CompleteProfileComponent {
     this.email = this.route.snapshot.queryParamMap.get('email') || '';
   }
 
-  complete() {
+  complete(form: NgForm) {
+    if (!form.valid) {
+      this.error = 'Please fill out all required fields';
+      return;
+    }
+
     const profile = {
       uid: this.uid,
       email: this.email,
@@ -44,8 +48,8 @@ export class CompleteProfileComponent {
 
     this.authService.completeProfile(profile).subscribe({
       next: (res: any) => {
-        this.token = res.token;
-        this.router.navigate(['/']);
+        localStorage.setItem('jwt', res.token); 
+        this.router.navigate(['/']); 
       },
       error: () => {
         this.error = 'Greška pri kompletiranju profila';
@@ -53,4 +57,3 @@ export class CompleteProfileComponent {
     });
   }
 }
- 

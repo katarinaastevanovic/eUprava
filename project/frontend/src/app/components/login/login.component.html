@@ -1,6 +1,6 @@
 <div class="flex flex-col items-center justify-center min-h-screen bg-gray-100">
   <div class="bg-white p-6 rounded-2xl shadow-md w-80 text-center">
-    <h2 class="text-xl font-bold mb-4">Prijava</h2>
+    <h2 class="text-xl font-bold mb-4">Login</h2>
 
     <form (ngSubmit)="loginWithEmail()" class="flex flex-col space-y-3">
       <input
@@ -15,7 +15,7 @@
         [(ngModel)]="password"
         name="password"
         type="password"
-        placeholder="Lozinka"
+        placeholder="Password"
         class="border rounded-lg px-3 py-2"
         required
       />
@@ -24,24 +24,21 @@
         [disabled]="loading"
         class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg transition disabled:bg-gray-400"
       >
-        {{ loading ? "Prijavljivanje..." : "Prijavi se" }}
+       {{ loading ? "Logging in..." : "Login" }}
+
       </button>
     </form>
 
-    <div class="my-4 text-gray-500">ili</div>
+    <div class="my-4 text-gray-500">or</div>
 
     <button
       (click)="loginWithFirebase()"
       [disabled]="loading"
       class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition disabled:bg-gray-400"
     >
-      Prijavi se sa Google
+      Continue with Google
     </button>
 
     <p *ngIf="error" class="text-red-500 text-sm mt-3">{{ error }}</p>
-
-    <div *ngIf="token" class="mt-4 text-green-600 text-sm break-all">
-      ✅ JWT: {{ token }}
-    </div>
   </div>
 </div>

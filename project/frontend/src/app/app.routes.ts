@@ -5,6 +5,6 @@ import { CompleteProfileComponent } from './components/complete-profile/complete
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'complete-profile', component: CompleteProfileComponent },
-  { path: '', redirectTo: 'login', pathMatch: 'full' },
-  { path: '**', redirectTo: 'login' }
+  { path: '', redirectTo: '', pathMatch: 'full' },
+  { path: '**', redirectTo: '' }
 ];
