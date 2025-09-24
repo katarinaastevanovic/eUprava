@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"bytes"
 	"encoding/json"
 	"net/http"
 
@@ -14,7 +15,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := services.RegisterUser(req)
+	user, err := services.RegisterUser(req)
 	if err != nil {
 		switch err {
 		case services.ErrUsernameExists:
@@ -41,8 +42,20 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	medicalReq := map[string]interface{}{
+		"userId": user.ID,
+	}
+
+	body, _ := json.Marshal(medicalReq)
+
+	resp, err := http.Post("http://medical-service:8082/medical-records", "application/json", bytes.NewBuffer(body))
+	if err != nil || resp.StatusCode != http.StatusCreated {
+		http.Error(w, "User registered but failed to create medical record", http.StatusAccepted)
+		return
+	}
+
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte("User registered successfully"))
+	w.Write([]byte("User registered successfully and medical record created"))
 }
 
 func CheckUsernameHandler(w http.ResponseWriter, r *http.Request) {
