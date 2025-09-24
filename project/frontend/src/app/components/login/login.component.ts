@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth/auth.service';
 
 @Component({
@@ -11,12 +12,12 @@ import { AuthService } from '../../services/auth/auth.service';
 })
 export class LoginComponent {
   private authService = inject(AuthService);
+  private router = inject(Router);
 
   email = '';
   password = '';
   loading = false;
   error = '';
-  token = '';
 
   async loginWithFirebase() {
     this.loading = true;
@@ -26,13 +27,13 @@ export class LoginComponent {
 
       this.authService.loginBackend(idToken).subscribe({
         next: (res: any) => {
-          // normalni JWT odgovor
-          this.token = res.token;
+          localStorage.setItem('jwt', res.token);
+
           this.loading = false;
+          this.router.navigateByUrl('/'); 
         },
         error: (err: any) => {
           if (err.status === 428 && err.error?.message === 'profile incomplete') {
-            // vodi na dopunu profila
             window.location.href = `/complete-profile?uid=${err.error.uid}&email=${err.error.email}`;
           } else {
             this.error = 'Firebase login failed';
@@ -53,8 +54,10 @@ export class LoginComponent {
     this.error = '';
     this.authService.loginWithEmail(this.email, this.password).subscribe({
       next: (res: any) => {
-        this.token = res.token;
+        localStorage.setItem('jwt', res.token);
+
         this.loading = false;
+        this.router.navigateByUrl('/'); 
       },
       error: (err) => {
         console.error('Email login error:', err);
