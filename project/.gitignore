@@ -1,3 +1,4 @@
+*.env
 # Firebase service account
 backend/auth-service/serviceAccountKey.json
 
