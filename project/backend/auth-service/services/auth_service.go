@@ -53,44 +53,43 @@ func validatePassword(password string) bool {
 	return hasUpper && hasLower && hasSpecial
 }
 
-func RegisterUser(req RegisterRequest) error {
-
+func RegisterUser(req RegisterRequest) (*models.Member, error) {
 	if len(req.UMCN) != 13 {
-		return ErrInvalidUMCN
+		return nil, ErrInvalidUMCN
 	}
 
 	if len(req.Username) < 4 {
-		return ErrInvalidUsername
+		return nil, ErrInvalidUsername
 	}
 
 	if !validatePassword(req.Password) {
-		return ErrInvalidPassword
+		return nil, ErrInvalidPassword
 	}
 
 	var count int64
 	database.DB.Model(&models.Member{}).Where("username = ?", req.Username).Count(&count)
 	if count > 0 {
-		return ErrUsernameExists
+		return nil, ErrUsernameExists
 	}
 
 	database.DB.Model(&models.Member{}).Where("umcn = ?", req.UMCN).Count(&count)
 	if count > 0 {
-		return ErrUMCNExists
+		return nil, ErrUMCNExists
 	}
 
 	database.DB.Model(&models.Member{}).Where("email = ?", req.Email).Count(&count)
 	if count > 0 {
-		return ErrEmailExists
+		return nil, ErrEmailExists
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	birthDate, gender, err := parseUMCN(req.UMCN)
+	birthDate, gender, err := ParseUMCN(req.UMCN)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	member := models.Member{
@@ -106,10 +105,10 @@ func RegisterUser(req RegisterRequest) error {
 	}
 
 	if err := database.DB.Create(&member).Error; err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return &member, nil
 }
 
 func CheckUsernameAvailable(username string) (bool, error) {
@@ -120,7 +119,7 @@ func CheckUsernameAvailable(username string) (bool, error) {
 	return count == 0, nil
 }
 
-func parseUMCN(umcn string) (time.Time, string, error) {
+func ParseUMCN(umcn string) (time.Time, string, error) {
 	if len(umcn) != 13 {
 		return time.Time{}, "", ErrInvalidUMCN
 	}
