@@ -80,13 +80,13 @@ func FirebaseLoginHandler(w http.ResponseWriter, r *http.Request) {
 
 func CompleteProfileHandler(w http.ResponseWriter, r *http.Request) {
 	var req struct {
-		UID      string `json:"uid"`
-		Email    string `json:"email"`
-		Username string `json:"username"`
-		Name     string `json:"name"`
-		LastName string `json:"lastName"`
-		UMCN     string `json:"umcn"`
-		Role     string `json:"role"`
+		UID      *string `json:"uid"`
+		Email    string  `json:"email"`
+		Username string  `json:"username"`
+		Name     string  `json:"name"`
+		LastName string  `json:"lastName"`
+		UMCN     string  `json:"umcn"`
+		Role     string  `json:"role"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {

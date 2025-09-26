@@ -13,6 +13,12 @@ export interface User {
   birth_date: string;
   gender: string;
 }
+export interface Absence {
+  id: number;
+  type: string;
+  date: string;
+  subject: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
@@ -27,5 +33,11 @@ export class UserService {
     }
 
     return this.http.get<User>(`${environment.apiBaseUrl}/profile`, { headers });
+  }
+
+  getStudentAbsences(studentId: number): Observable<{ student_id: number; count: number; absences: Absence[] }> {
+    return this.http.get<{ student_id: number; count: number; absences: Absence[] }>(
+      `${environment.schoolApiBaseUrl}/students/${studentId}/absences`
+    );
   }
 }

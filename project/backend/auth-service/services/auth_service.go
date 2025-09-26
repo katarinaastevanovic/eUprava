@@ -181,7 +181,7 @@ func FindUserByID(id uint) (*models.Member, error) {
 	return &user, nil
 }
 
-func CreateUserFromFirebase(uid, email, username, name, lastName, umcn string) (*models.Member, error) {
+func CreateUserFromFirebase(uid *string, email, username, name, lastName, umcn string) (*models.Member, error) {
 	user := models.Member{
 		FirebaseUID: uid,
 		Email:       email,

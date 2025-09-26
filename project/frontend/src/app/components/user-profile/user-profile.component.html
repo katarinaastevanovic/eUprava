@@ -91,42 +91,36 @@
       <!-- Dve kartice sa progress barovima -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="bg-white rounded-lg shadow p-6">
-          <h6 class="font-semibold mb-4 text-sky-600 flex items-center gap-2">
-            Absences
-          </h6>
-          <div class="space-y-4">
-            <div>
-              <small>Web Design</small>
-              <div class="w-full bg-gray-200 h-1.5 rounded">
-                <div class="bg-blue-600 h-1.5 rounded w-[80%]"></div>
-              </div>
+        <h6 class="font-semibold mb-4 text-sky-600 flex items-center gap-2">
+            Absences ({{ absences.length }})
+        </h6>
+
+        <div *ngIf="absences.length > 0; else noAbsences" class="space-y-4">
+            <div *ngFor="let absence of absences" class="p-3 bg-gray-50 rounded border">
+            <div class="flex justify-between items-center">
+                <div>
+                <p class="font-semibold text-gray-800">{{ absence.subject }}</p>
+                <p class="text-sm text-gray-500">{{ absence.date }}</p>
+                </div>
+                <span
+                class="px-2 py-1 rounded text-sm"
+                [ngClass]="{
+                    'bg-red-100 text-red-600': absence.type === 'unexcused',
+                    'bg-green-100 text-green-600': absence.type === 'excused',
+                    'bg-yellow-100 text-yellow-600': absence.type === 'pending'
+                    }"
+                                >
+                {{ absence.type }}
+                </span>
             </div>
-            <div>
-              <small>Website Markup</small>
-              <div class="w-full bg-gray-200 h-1.5 rounded">
-                <div class="bg-blue-600 h-1.5 rounded w-[72%]"></div>
-              </div>
             </div>
-            <div>
-              <small>One Page</small>
-              <div class="w-full bg-gray-200 h-1.5 rounded">
-                <div class="bg-blue-600 h-1.5 rounded w-[89%]"></div>
-              </div>
-            </div>
-            <div>
-              <small>Mobile Template</small>
-              <div class="w-full bg-gray-200 h-1.5 rounded">
-                <div class="bg-blue-600 h-1.5 rounded w-[55%]"></div>
-              </div>
-            </div>
-            <div>
-              <small>Backend API</small>
-              <div class="w-full bg-gray-200 h-1.5 rounded">
-                <div class="bg-blue-600 h-1.5 rounded w-[66%]"></div>
-              </div>
-            </div>
-          </div>
         </div>
+
+        <ng-template #noAbsences>
+            <p class="text-gray-500 text-sm">No absences found for this student.</p>
+        </ng-template>
+        </div>
+
 
         <div class="bg-white rounded-lg shadow p-6">
           <h6 class="font-semibold mb-4 text-sky-600 flex items-center gap-2">
