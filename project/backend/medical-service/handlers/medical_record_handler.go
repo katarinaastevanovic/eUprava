@@ -2,10 +2,11 @@ package handlers
 
 import (
 	"encoding/json"
-	"medical-service/database"
-	"medical-service/models"
+	"medical-service/services"
 	"net/http"
-	"time"
+	"strconv"
+
+	"github.com/gorilla/mux"
 )
 
 type CreateMedicalRecordRequest struct {
@@ -19,18 +20,117 @@ func CreateMedicalRecord(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	record := models.MedicalRecord{
-		PatientID:       req.UserID,
-		Allergies:       "",
-		ChronicDiseases: "",
-		LastUpdate:      time.Now().Format("2006-01-02"),
-	}
-
-	if err := database.DB.Create(&record).Error; err != nil {
+	record, err := services.CreateMedicalRecord(req.UserID)
+	if err != nil {
 		http.Error(w, "Failed to create record", http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(record)
+}
+
+func GetMedicalRecord(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userIDStr := vars["userId"]
+
+	userID, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		http.Error(w, "Invalid userId", http.StatusBadRequest)
+		return
+	}
+
+	record, err := services.GetMedicalRecordByUserID(uint(userID))
+	if err != nil {
+		http.Error(w, "Record not found", http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(record)
+}
+
+func UpdateMedicalRecord(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userIDStr := vars["userId"]
+
+	userID, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		http.Error(w, "Invalid userId", http.StatusBadRequest)
+		return
+	}
+
+	var updateData struct {
+		Allergies       string `json:"allergies"`
+		ChronicDiseases string `json:"chronicDiseases"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&updateData); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	record, err := services.UpdateMedicalRecord(uint(userID), updateData.Allergies, updateData.ChronicDiseases)
+	if err != nil {
+		http.Error(w, "Failed to update record", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(record)
+}
+
+func GetFullMedicalRecord(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userIDStr := vars["userId"]
+
+	userID, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		http.Error(w, "Invalid userId", http.StatusBadRequest)
+		return
+	}
+
+	// 1. Dobij medicinski karton iz medical servisa
+	record, err := services.GetMedicalRecordByUserID(uint(userID))
+	if err != nil {
+		http.Error(w, "Medical record not found", http.StatusNotFound)
+		return
+	}
+
+	// 2. Dobij podatke o pacijentu iz auth servisa
+	patient, err := services.GetPatientFromAuth(uint(userID))
+	if err != nil {
+		http.Error(w, "Failed to fetch patient data from auth service", http.StatusInternalServerError)
+		return
+	}
+
+	// 3. Kombinuj podatke u DTO za frontend
+	fullRecord := struct {
+		PatientID       uint        `json:"patientId"`
+		Name            string      `json:"name"`
+		LastName        string      `json:"lastName"`
+		JMBG            string      `json:"jmbg"`
+		BirthDate       string      `json:"birthDate"`
+		Gender          string      `json:"gender"`
+		Allergies       string      `json:"allergies"`
+		ChronicDiseases string      `json:"chronicDiseases"`
+		LastUpdate      string      `json:"lastUpdate"`
+		Examinations    interface{} `json:"examinations"`
+		Requests        interface{} `json:"requests"`
+	}{
+		PatientID:       record.PatientId,
+		Name:            patient.Name,
+		LastName:        patient.LastName,
+		JMBG:            patient.UMCN,
+		BirthDate:       patient.BirthDate,
+		Gender:          patient.Gender,
+		Allergies:       record.Allergies,
+		ChronicDiseases: record.ChronicDiseases,
+		LastUpdate:      record.LastUpdate,
+		Examinations:    record.Examinations,
+		Requests:        record.Requests,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(fullRecord)
 }

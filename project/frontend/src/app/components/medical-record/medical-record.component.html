@@ -1,0 +1,81 @@
+<div class="flex flex-col items-center justify-center min-h-screen">
+  <div class="bg-white p-6 rounded-2xl shadow-md w-96 text-center">
+    <h2 class="text-xl font-bold mb-4">Medical Record</h2>
+
+    <div *ngIf="record; else noRecord">
+      <div class="mb-4 text-left">
+        <p><strong>Name:</strong> {{ record?.name }} 
+        <p><strong>Lastname:</strong> {{ record?.lastName }}</p>
+        <p><strong>JMBG:</strong> {{ record?.jmbg }}</p>
+        <p><strong>Birth Date:</strong> {{ record?.birthDate | date:'dd.MM.yyyy.' }}</p>
+        <p><strong>Gender:</strong> {{ record?.gender }}</p>
+      </div>
+
+      <form (ngSubmit)="updateRecord()" class="flex flex-col space-y-3 text-left">
+        <label class="font-semibold">Allergies</label>
+        <input
+          [(ngModel)]="allergies"
+          name="allergies"
+          type="text"
+          placeholder="Allergies"
+          class="border rounded-lg px-3 py-2"
+        />
+
+        <label class="font-semibold">Chronic Diseases</label>
+        <input
+          [(ngModel)]="chronicDiseases"
+          name="chronicDiseases"
+          type="text"
+          placeholder="Chronic Diseases"
+          class="border rounded-lg px-3 py-2"
+        />
+
+        <p class="text-gray-500 text-sm">Last update: {{ record?.lastUpdate }}</p>
+
+        <button
+          type="submit"
+          [disabled]="loading"
+          class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg transition disabled:bg-gray-400"
+        >
+          {{ loading ? "Saving..." : "Update" }}
+        </button>
+      </form>
+
+      <div class="mt-4 text-left">
+        <h3 class="font-bold mb-2">Examinations</h3>
+        <div *ngIf="record?.examinations?.length; else noExams">
+          <ul class="list-disc ml-5">
+            <li *ngFor="let exam of record.examinations">{{ exam | json }}</li>
+          </ul>
+        </div>
+        <ng-template #noExams>
+          <p class="text-gray-500 text-sm">No examinations yet.</p>
+        </ng-template>
+
+        <h3 class="font-bold mt-4 mb-2">Requests</h3>
+        <div *ngIf="record?.requests?.length; else noRequests">
+          <ul class="list-disc ml-5">
+            <li *ngFor="let req of record.requests">{{ req | json }}</li>
+          </ul>
+        </div>
+        <ng-template #noRequests>
+          <p class="text-gray-500 text-sm">No requests yet.</p>
+        </ng-template>
+      </div>
+    </div>
+
+    <ng-template #noRecord>
+      <p class="mb-4 text-gray-600">You don’t have a medical record yet.</p>
+      <button
+        (click)="createRecord()"
+        [disabled]="loading"
+        class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition disabled:bg-gray-400"
+      >
+        {{ loading ? "Creating..." : "Create Record" }}
+      </button>
+    </ng-template>
+
+    <p *ngIf="error" class="text-red-500 text-sm mt-3">{{ error }}</p>
+    <p *ngIf="success" class="text-green-500 text-sm mt-3">{{ success }}</p>
+  </div>
+</div>
