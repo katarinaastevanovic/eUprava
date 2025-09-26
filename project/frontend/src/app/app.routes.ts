@@ -4,6 +4,7 @@ import { AppComponent } from './app.component';
 import { UserProfileComponent } from './components/user-profile/user-profile.component';
 import { LoginComponent } from './components/login/login.component';
 import { CompleteProfileComponent } from './components/complete-profile/complete-profile.component';
+import { MedicalRecordComponent } from './components/medical-record/medical-record.component';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -11,6 +12,7 @@ export const routes: Routes = [
     { path: 'profile', component: UserProfileComponent },  
   { path: 'login', component: LoginComponent },
   { path: 'complete-profile', component: CompleteProfileComponent },
+  { path: 'medical-record', component: MedicalRecordComponent },
   { path: '', redirectTo: '', pathMatch: 'full' },
   { path: '**', redirectTo: '' }
 ];
