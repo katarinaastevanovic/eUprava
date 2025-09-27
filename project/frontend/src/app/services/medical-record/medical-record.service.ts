@@ -7,28 +7,28 @@ import { FullMedicalRecord } from '../../models/medical-models/full-medical-reco
   providedIn: 'root'
 })
 export class MedicalRecordService {
-  private apiUrl = 'http://localhost:8082/medical-record';
+  private apiUrl = 'http://localhost:8080/api/medical/medical-record';
 
   constructor(private http: HttpClient) {}
 
   getFullRecord(userId: number): Observable<FullMedicalRecord> {
-    return this.http.get<FullMedicalRecord>(`${this.apiUrl}/full/${userId}`);
-  }
+  return this.http.get<FullMedicalRecord>(`${this.apiUrl}/full/${userId}`);
+}
 
-  createRecord(userId: number): Observable<FullMedicalRecord> {
-    return this.http.post<FullMedicalRecord>(`http://localhost:8082/medical-records`, { userId });
-  }
+createRecord(userId: number): Observable<FullMedicalRecord> {
+  return this.http.post<FullMedicalRecord>(`http://localhost:8080/api/medical/medical-records`, { userId });
+}
 
-  updateRecord(record: FullMedicalRecord) {
-    const token = localStorage.getItem('jwt');
-    const headers = { Authorization: `Bearer ${token}` };
-    return this.http.put<FullMedicalRecord>(
-      `${this.apiUrl}/${record.patientId}`,
-      {
-        allergies: record.allergies,
-        chronicDiseases: record.chronicDiseases
-      },
-      { headers }
-    );
-  }
+updateRecord(record: FullMedicalRecord) {
+  const token = localStorage.getItem('jwt');
+  const headers = { Authorization: `Bearer ${token}` };
+  return this.http.put<FullMedicalRecord>(
+    `${this.apiUrl}/${record.patientId}`,
+    {
+      allergies: record.allergies,
+      chronicDiseases: record.chronicDiseases
+    },
+    { headers }
+  );
+}
 }

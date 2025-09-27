@@ -26,38 +26,36 @@ export interface Student {
 @Injectable({
   providedIn: 'root'
 })
-
 export class ExaminationRequestService {
-  private apiUrl = 'http://localhost:8082';
+  private apiGatewayUrl = 'http://localhost:8080/api'; 
 
   constructor(private http: HttpClient) {}
 
   createRequest(request: Request): Observable<Request> {
-    return this.http.post<Request>(`${this.apiUrl}/requests`, request);
+    return this.http.post<Request>(`${this.apiGatewayUrl}/medical/requests`, request);
   }
 
   getRequestsByPatient(patientId: number): Observable<Request[]> {
-    return this.http.get<Request[]>(`${this.apiUrl}/requests/patient/${patientId}`);
+    return this.http.get<Request[]>(`${this.apiGatewayUrl}/medical/requests/patient/${patientId}`);
+  }
+
+  getRequestsByDoctor(doctorId: number): Observable<Request[]> {
+    return this.http.get<Request[]>(`${this.apiGatewayUrl}/medical/requests/doctor/${doctorId}`);
+  }
+
+  approveRequest(requestId: number): Observable<void> {
+    return this.http.patch<void>(`${this.apiGatewayUrl}/medical/requests/${requestId}/approve`, {});
+  }
+
+  rejectRequest(requestId: number): Observable<void> {
+    return this.http.patch<void>(`${this.apiGatewayUrl}/medical/requests/${requestId}/reject`, {});
   }
 
   getDoctors(): Observable<Doctor[]> {
-    return this.http.get<Doctor[]>('http://localhost:8080/users/doctors');
+    return this.http.get<Doctor[]>(`${this.apiGatewayUrl}/auth/users/doctors`);
   }
 
   getAllStudents(): Observable<Student[]> {
-    return this.http.get<Student[]>(`http://localhost:8080/users/students`);
+    return this.http.get<Student[]>(`${this.apiGatewayUrl}/auth/users/students`);
   }
-
-  getRequestsByDoctor(doctorId: number) {
-  return this.http.get<Request[]>(`${this.apiUrl}/requests/doctor/${doctorId}`);
-  }
-
-  approveRequest(requestId: number) {
-    return this.http.patch(`${this.apiUrl}/requests/${requestId}/approve`, {});
-  }
-
-  rejectRequest(requestId: number) {
-    return this.http.patch(`${this.apiUrl}/requests/${requestId}/reject`, {});
-  }
-
 }

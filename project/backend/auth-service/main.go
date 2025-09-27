@@ -27,8 +27,8 @@ func main() {
 
 	handler := corsMiddleware(r)
 
-	log.Println("Auth service listening on port 8080")
-	if err := http.ListenAndServe(":8080", handler); err != nil {
+	log.Println("Auth service listening on port 8081")
+	if err := http.ListenAndServe(":8081", handler); err != nil {
 		log.Fatal(err)
 	}
 }
