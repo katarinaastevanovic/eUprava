@@ -90,21 +90,18 @@ func GetFullMedicalRecord(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 1. Dobij medicinski karton iz medical servisa
 	record, err := services.GetMedicalRecordByUserID(uint(userID))
 	if err != nil {
 		http.Error(w, "Medical record not found", http.StatusNotFound)
 		return
 	}
 
-	// 2. Dobij podatke o pacijentu iz auth servisa
 	patient, err := services.GetPatientFromAuth(uint(userID))
 	if err != nil {
 		http.Error(w, "Failed to fetch patient data from auth service", http.StatusInternalServerError)
 		return
 	}
 
-	// 3. Kombinuj podatke u DTO za frontend
 	fullRecord := struct {
 		PatientID       uint        `json:"patientId"`
 		Name            string      `json:"name"`

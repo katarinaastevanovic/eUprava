@@ -206,3 +206,17 @@ func FindUserByFirebaseUID(uid string) (*models.Member, error) {
 	return &user, nil
 
 }
+
+func GetAllDoctors() ([]models.Member, error) {
+	var doctors []models.Member
+	err := database.DB.Where("role = ?", "DOCTOR").Find(&doctors).Error
+	return doctors, err
+}
+
+func GetAllStudents() ([]models.Member, error) {
+	var students []models.Member
+	if err := database.DB.Where("role = ?", "STUDENT").Find(&students).Error; err != nil {
+		return nil, err
+	}
+	return students, nil
+}

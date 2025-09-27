@@ -8,6 +8,6 @@ type MedicalRecord struct {
 	Allergies       string `gorm:"type:text"`
 	ChronicDiseases string `gorm:"type:text"`
 	LastUpdate      string
-	Examinations    []Examination `gorm:"foreignKey:MedicalRecordID"`
-	Requests        []Request     `gorm:"foreignKey:MedicalRecordID"`
+	Examinations    []Examination `gorm:"foreignKey:MedicalRecordId"`
+	Requests        []Request     `gorm:"foreignKey:MedicalRecordId"`
 }

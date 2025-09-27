@@ -20,7 +20,12 @@ func Connect() {
 		log.Fatal("Failed to connect to database: ", err)
 	}
 
-	err = DB.AutoMigrate(&models.MedicalRecord{})
+	err = DB.AutoMigrate(
+		&models.MedicalRecord{},
+		&models.Request{},
+		&models.Examination{},
+		&models.MedicalCertificate{},
+	)
 	if err != nil {
 		log.Fatal("Failed to migrate database: ", err)
 	}
