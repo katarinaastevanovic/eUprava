@@ -3,12 +3,12 @@ version: "3.9"
 services:
   api-gateway:
     build:
-      context: ./api-gateway
+      context: ${API_GATEWAY_PATH}
       dockerfile: Dockerfile
     container_name: api-gateway
     restart: always
     ports:
-      - "8080:8080"
+      - "${API_GATEWAY_HOST_PORT}:${API_GATEWAY_CONTAINER_PORT}"
     depends_on:
       - authservice
       - medicalservice
@@ -23,9 +23,9 @@ services:
     container_name: auth-service
     restart: always
     ports:
-      - "8081:8081"
+      - "${AUTH_HOST_PORT}:${AUTH_CONTAINER_PORT}"
     environment:
-      PORT: 8081
+      PORT: ${AUTH_CONTAINER_PORT}
       DATABASE_URL: ${AUTH_DATABASE_URL}
     depends_on:
       - postgres
@@ -39,9 +39,9 @@ services:
     container_name: medical-service
     restart: always
     ports:
-      - "8082:8082"
+      - "${MEDICAL_HOST_PORT}:${MEDICAL_CONTAINER_PORT}"
     environment:
-      PORT: 8082
+      PORT: ${MEDICAL_CONTAINER_PORT}
       DATABASE_URL: ${MEDICAL_DATABASE_URL}
     depends_on:
       - postgres
@@ -55,9 +55,9 @@ services:
     container_name: school-service
     restart: always
     ports:
-      - "8083:8083"
+      - "${SCHOOL_HOST_PORT}:${SCHOOL_CONTAINER_PORT}"
     environment:
-      PORT: 8083
+      PORT: ${SCHOOL_CONTAINER_PORT}
       DATABASE_URL: ${SCHOOL_DATABASE_URL}
     depends_on:
       - postgres
@@ -69,10 +69,10 @@ services:
     container_name: postgres
     restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init-db:/docker-entrypoint-initdb.d
@@ -84,10 +84,10 @@ services:
     container_name: pgadmin
     restart: always
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@example.com
-      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
     ports:
-      - "5050:80"
+      - "${PGADMIN_PORT}:80"
     depends_on:
       - postgres
     networks:
