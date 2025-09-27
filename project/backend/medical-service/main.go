@@ -18,6 +18,11 @@ func main() {
 	r.HandleFunc("/medical-record/{userId}", handlers.GetMedicalRecord).Methods("GET")
 	r.HandleFunc("/medical-record/{userId}", handlers.UpdateMedicalRecord).Methods("PUT")
 	r.HandleFunc("/medical-record/full/{userId}", handlers.GetFullMedicalRecord).Methods("GET")
+	r.HandleFunc("/requests", handlers.CreateRequest).Methods("POST")
+	r.HandleFunc("/requests/patient/{id}", handlers.GetRequestsByPatient).Methods("GET")
+	r.HandleFunc("/requests/doctor/{id}", handlers.GetRequestsByDoctor).Methods("GET")
+	r.HandleFunc("/requests/{id}/approve", handlers.ApproveRequest).Methods("PATCH")
+	r.HandleFunc("/requests/{id}/reject", handlers.RejectRequest).Methods("PATCH")
 
 	handler := corsMiddleware(r)
 
@@ -30,7 +35,7 @@ func main() {
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:4200")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
 

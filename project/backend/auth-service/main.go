@@ -21,9 +21,9 @@ func main() {
 	r.HandleFunc("/firebase-login", handlers.FirebaseLoginHandler).Methods("POST")
 	r.HandleFunc("/complete-profile", handlers.CompleteProfileHandler).Methods("POST")
 	r.Handle("/profile", middleware.JWTAuth(http.HandlerFunc(handlers.GetCurrentUser))).Methods("GET")
-
-	// PRAVILNA ruta sa varijablom userId
 	r.HandleFunc("/patients/{userId}", handlers.GetPatientHandler).Methods("GET")
+	r.HandleFunc("/users/doctors", handlers.GetAllDoctorsHandler).Methods("GET")
+	r.HandleFunc("/users/students", handlers.GetAllStudentsHandler).Methods("GET")
 
 	handler := corsMiddleware(r)
 

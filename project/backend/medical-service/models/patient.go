@@ -4,8 +4,8 @@ import "gorm.io/gorm"
 
 type Patient struct {
 	gorm.Model
-	UserID         uint                 `gorm:"not null"`
-	MedicalRecords []MedicalRecord      `gorm:"foreignKey:PatientID"`
-	Certificates   []MedicalCertificate `gorm:"foreignKey:PatientID"`
+	UserId         uint                 `gorm:"not null"`
+	MedicalRecords []MedicalRecord      `gorm:"foreignKey:PatientId"`
+	Certificates   []MedicalCertificate `gorm:"foreignKey:PatientId"`
 	DoctorID       uint
 }
