@@ -59,7 +59,7 @@ func UpdateMedicalRecord(userID uint, allergies, chronicDiseases string) (*model
 }
 
 func GetPatientFromAuth(userID uint) (*AuthUser, error) {
-	url := fmt.Sprintf("http://authservice:8080/patients/%d", userID)
+	url := fmt.Sprintf("http://authservice:8081/patients/%d", userID)
 
 	resp, err := http.Get(url)
 	if err != nil {

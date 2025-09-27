@@ -8,6 +8,8 @@ export class AuthService {
   private auth = inject(Auth);
   private http = inject(HttpClient);
 
+  private apiGatewayUrl = 'http://localhost:8080/api/auth'; 
+
   async loginWithGoogle(): Promise<string> {
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({
@@ -26,16 +28,15 @@ export class AuthService {
 
   loginBackend(idToken: string) {
     console.log('Saljem ID token na backend:', idToken);
-    return this.http.post(`${environment.apiBaseUrl}/firebase-login`, { idToken });
+    return this.http.post(`${this.apiGatewayUrl}/firebase-login`, { idToken });
   }
 
   completeProfile(profile: any) {
     console.log('Kompletiranje profila:', profile);
-    return this.http.post(`${environment.apiBaseUrl}/complete-profile`, profile);
+    return this.http.post(`${this.apiGatewayUrl}/complete-profile`, profile);
   }
 
   loginWithEmail(email: string, password: string) {
-  return this.http.post(`${environment.apiBaseUrl}/login`, { email, password });
-}
-
+    return this.http.post(`${this.apiGatewayUrl}/login`, { email, password });
+  }
 }

@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	port := "8080"
+	port := "8083"
 	if p := os.Getenv("PORT"); p != "" {
 		port = p
 	}
@@ -17,7 +17,7 @@ func main() {
 		fmt.Fprintf(w, "School service is running!")
 	})
 
-	log.Printf("🚀 School service listening on port %s\n", port)
+	log.Printf("School service listening on port %s\n", port)
 	if err := http.ListenAndServe(":"+port, nil); err != nil {
 		log.Fatal(err)
 	}
