@@ -19,6 +19,16 @@ export interface Absence {
   date: string;
   subject: string;
 }
+export interface ClassDTO {
+  id: number;
+  title: string;
+  year: number;
+}
+export interface TeacherClassesResponse {
+  subject_name: string;
+  classes: ClassDTO[];
+}
+
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
@@ -40,4 +50,19 @@ export class UserService {
       `${environment.schoolApiBaseUrl}/students/${studentId}/absences`
     );
   }
+
+  updateAbsenceType(absenceId: number, newType: string): Observable<any> {
+  return this.http.put(`${environment.schoolApiBaseUrl}/absences/${absenceId}/type`, {
+    type: newType
+  });
+}
+
+
+getTeacherClasses(teacherId: number): Observable<TeacherClassesResponse> {
+  return this.http.get<TeacherClassesResponse>(
+    `${environment.schoolApiBaseUrl}/teachers/${teacherId}/classes`
+  );
+}
+
+
 }

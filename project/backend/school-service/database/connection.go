@@ -23,7 +23,6 @@ func Connect() *gorm.DB {
 		&models.Absence{},
 		&models.Class{},
 		&models.Grade{},
-		&models.Parent{},
 		&models.Student{},
 		&models.Subject{},
 		&models.Teacher{},
