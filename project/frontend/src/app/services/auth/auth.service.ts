@@ -11,20 +11,22 @@ export class AuthService {
   private apiGatewayUrl = 'http://localhost:8080/api/auth'; 
 
   async loginWithGoogle(): Promise<string> {
-    const provider = new GoogleAuthProvider();
-    provider.setCustomParameters({
-      client_id: environment.firebase.webClientId
-    });
+  const provider = new GoogleAuthProvider();
 
-    console.log('Pokrecem Google popup login...');
-    const credential = await signInWithPopup(this.auth, provider);
+  provider.setCustomParameters({
+    prompt: 'select_account',
+    client_id: environment.firebase.webClientId
+  });
 
-    if (!credential.user) throw new Error('No user returned');
+  console.log('Pokrecem Google popup login...');
+  const credential = await signInWithPopup(this.auth, provider);
 
-    const idToken = await credential.user.getIdToken();
-    console.log('Firebase ID Token dobijen:', idToken);
-    return idToken;
-  }
+  if (!credential.user) throw new Error('No user returned');
+
+  const idToken = await credential.user.getIdToken();
+  console.log('Firebase ID Token dobijen:', idToken);
+  return idToken;
+}
 
   loginBackend(idToken: string) {
     console.log('Saljem ID token na backend:', idToken);
@@ -40,11 +42,15 @@ export class AuthService {
     return this.http.post(`${this.apiGatewayUrl}/login`, { email, password });
   }
 
-  logout(): void {
-    localStorage.removeItem('jwt');
+  async logout(): Promise<void> {
+  try {
+    await signOut(this.auth);
 
-    signOut(this.auth)
-      .then(() => console.log('Firebase logged out'))
-      .catch(err => console.error('Firebase logout error', err));
+    localStorage.removeItem('jwt');
+    console.log('Firebase logged out and token removed');
+
+  } catch (err) {
+    console.error('Firebase logout error', err);
   }
+}
 }

@@ -117,12 +117,46 @@ func CompleteProfileHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	body, _ := json.Marshal(map[string]interface{}{"userId": user.ID})
-	if resp, err := http.Post("http://medical-service:8082/medical-records", "application/json", bytes.NewBuffer(body)); err != nil || resp.StatusCode != http.StatusCreated {
-		http.Error(w, "User created but failed to create medical record", http.StatusAccepted)
+	// Ako je STUDENT, kreiraj medicinski zapis
+	if user.Role == "STUDENT" {
+		body, _ := json.Marshal(map[string]interface{}{
+			"userId": user.ID,
+		})
+
+		req, _ := http.NewRequest(
+			"POST",
+			"http://medical-service:8082/medical-records",
+			bytes.NewBuffer(body),
+		)
+		req.Header.Set("Content-Type", "application/json")
+
+		// Generiši JWT token za STUDENT-a i dodaj u header
+		jwtToken, _ := services.GenerateJWT(user.ID, user.Username, string(user.Role))
+		req.Header.Set("Authorization", "Bearer "+jwtToken)
+
+		client := &http.Client{}
+		resp, err := client.Do(req)
+		if err != nil {
+			log.Printf("HTTP request failed when creating patient/medical record: %v", err)
+			http.Error(w, "Failed to create patient/medical record", http.StatusInternalServerError)
+			return
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusCreated {
+			log.Printf("Medical service returned status %d when creating patient/medical record", resp.StatusCode)
+			http.Error(w, "Failed to create patient/medical record", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	// Generiši i vrati JWT za korisnika
+	token, err := services.GenerateJWT(user.ID, user.Username, string(user.Role))
+	if err != nil {
+		log.Printf("Failed to generate JWT: %v", err)
+		http.Error(w, "Failed to generate JWT", http.StatusInternalServerError)
 		return
 	}
 
-	token, _ := services.GenerateJWT(user.ID, user.Username, string(user.Role))
 	json.NewEncoder(w).Encode(map[string]string{"token": token})
 }

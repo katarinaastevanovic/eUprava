@@ -14,9 +14,10 @@ export class HeaderComponent {
   constructor(private authService: AuthService, private router: Router) {}
 
   logout() {
-    this.authService.logout();
+  this.authService.logout().then(() => {
     this.router.navigate(['/login']); 
-  }
+  });
+}
 
   isLoggedIn(): boolean {
     return !!localStorage.getItem('jwt');
