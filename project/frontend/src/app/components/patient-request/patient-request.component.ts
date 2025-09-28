@@ -1,12 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
+import { RouterModule } from '@angular/router';
 import { ExaminationRequestService, Request, Doctor } from '../../services/examination-request/examination-request.service';
 
 @Component({
   selector: 'app-patient-requests',
   standalone: true,
-  imports: [CommonModule, HttpClientModule],
+  imports: [CommonModule, HttpClientModule, RouterModule],
   templateUrl: './patient-request.component.html',
 })
 

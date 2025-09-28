@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Auth, signInWithPopup, GoogleAuthProvider } from '@angular/fire/auth';
+import { Auth, signInWithPopup, GoogleAuthProvider, signOut } from '@angular/fire/auth';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 
@@ -38,5 +38,13 @@ export class AuthService {
 
   loginWithEmail(email: string, password: string) {
     return this.http.post(`${this.apiGatewayUrl}/login`, { email, password });
+  }
+
+  logout(): void {
+    localStorage.removeItem('jwt');
+
+    signOut(this.auth)
+      .then(() => console.log('Firebase logged out'))
+      .catch(err => console.error('Firebase logout error', err));
   }
 }

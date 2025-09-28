@@ -2,6 +2,14 @@
   <div class="bg-white p-6 rounded-2xl shadow-md w-96 text-center">
     <h3 class="text-2xl font-semibold text-teal-700 mb-6">My Requests</h3>
 
+    <div class="flex justify-center mb-4 w-full">
+      <button 
+        class="bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700 transition"
+        [routerLink]="['/create-request']">
+        Create New Request
+      </button>
+    </div>
+
     <div class="overflow-x-auto">
       <table class="w-full table-auto border-collapse border border-teal-700">
         <thead class="bg-teal-800 text-white">
