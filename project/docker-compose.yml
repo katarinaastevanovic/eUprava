@@ -1,6 +1,21 @@
 version: "3.9"
 
 services:
+  api-gateway:
+    build:
+      context: ${API_GATEWAY_PATH}
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    restart: always
+    ports:
+      - "${API_GATEWAY_HOST_PORT}:${API_GATEWAY_CONTAINER_PORT}"
+    depends_on:
+      - authservice
+      - medicalservice
+      - schoolservice
+    networks:
+      - backend
+
   authservice:
     build:
       context: ${AUTH_SERVICE_PATH}
@@ -8,10 +23,26 @@ services:
     container_name: auth-service
     restart: always
     ports:
-      - "8080:8080"
+      - "${AUTH_HOST_PORT}:${AUTH_CONTAINER_PORT}"
     environment:
-      PORT: 8080
-      DATABASE_URL: ${DATABASE_URL}
+      PORT: ${AUTH_CONTAINER_PORT}
+      DATABASE_URL: ${AUTH_DATABASE_URL}
+    depends_on:
+      - postgres
+    networks:
+      - backend
+
+  medicalservice:
+    build:
+      context: ${MEDICAL_SERVICE_PATH}
+      dockerfile: Dockerfile
+    container_name: medical-service
+    restart: always
+    ports:
+      - "${MEDICAL_HOST_PORT}:${MEDICAL_CONTAINER_PORT}"
+    environment:
+      PORT: ${MEDICAL_CONTAINER_PORT}
+      DATABASE_URL: ${MEDICAL_DATABASE_URL}
     depends_on:
       - postgres
     networks:
@@ -24,37 +55,27 @@ services:
     container_name: school-service
     restart: always
     ports:
-      - "8081:8080"
+      - "${SCHOOL_HOST_PORT}:${SCHOOL_CONTAINER_PORT}"
     environment:
-      PORT: 8080
-    networks:
-      - backend
-
-  medicalservice:
-    build:
-      context: ${MEDICAL_SERVICE_PATH}
-      dockerfile: Dockerfile
-    container_name: medical-service
-    restart: always
-    ports:
-      - "8082:8080"
-    environment:
-      PORT: 8080
+      PORT: ${SCHOOL_CONTAINER_PORT}
+      DATABASE_URL: ${SCHOOL_DATABASE_URL}
+    depends_on:
+      - postgres
     networks:
       - backend
 
   postgres:
     image: postgres:15
-    container_name: postgres-auth
+    container_name: postgres
     restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: authdb
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d
     networks:
       - backend
   
@@ -63,10 +84,10 @@ services:
     container_name: pgadmin
     restart: always
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@example.com
-      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
     ports:
-      - "5050:80"
+      - "${PGADMIN_PORT}:80"
     depends_on:
       - postgres
     networks:

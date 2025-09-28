@@ -1,4 +1,3 @@
-# 1. Build stage
 FROM golang:1.23 AS builder
 
 WORKDIR /app
@@ -9,12 +8,11 @@ RUN go mod download
 COPY . .
 RUN go build -o medicalservice .
 
-# 2. Minimalna finalna slika
 FROM gcr.io/distroless/base-debian12
 
 WORKDIR /app
 COPY --from=builder /app/medicalservice .
 
-EXPOSE 8080
+EXPOSE 8082
 
 CMD ["./medicalservice"]

@@ -1,0 +1,24 @@
+<div class="flex flex-col items-center justify-center min-h-screen bg-teal-50 p-4">
+  <div class="bg-white p-6 rounded-2xl shadow-md w-96 text-center">
+    <h3 class="text-2xl font-semibold text-teal-700 mb-6">My Requests</h3>
+
+    <div class="overflow-x-auto">
+      <table class="w-full table-auto border-collapse border border-teal-700">
+        <thead class="bg-teal-800 text-white">
+          <tr>
+            <th class="px-4 py-2 border border-teal-700">Doctor</th>
+            <th class="px-4 py-2 border border-teal-700">Type</th>
+            <th class="px-4 py-2 border border-teal-700">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let req of requests" class="hover:bg-teal-100">
+            <td class="px-4 py-2 border border-teal-700">{{ getDoctorName(req.doctorId) }}</td>
+            <td class="px-4 py-2 border border-teal-700">{{ req.type }}</td>
+            <td class="px-4 py-2 border border-teal-700">{{ req.status || 'REQUESTED' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

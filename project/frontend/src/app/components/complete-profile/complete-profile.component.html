@@ -1,0 +1,80 @@
+<div class="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+  <div class="bg-white p-6 rounded-2xl shadow-md w-96 text-center">
+    <h2 class="text-xl font-bold mb-4">Complete your profile</h2>
+
+    <form #form="ngForm" (ngSubmit)="complete(form)" class="flex flex-col space-y-3" novalidate>
+
+      <input
+        [(ngModel)]="username"
+        name="username"
+        placeholder="Username"
+        class="border rounded-lg px-3 py-2"
+        required
+        #usernameField="ngModel"
+      />
+      <div *ngIf="usernameField.invalid && usernameField.touched" class="text-red-500 text-sm">
+        Username is required
+      </div>
+
+      <input
+        [(ngModel)]="name"
+        name="name"
+        placeholder="Name"
+        class="border rounded-lg px-3 py-2"
+        required
+        #nameField="ngModel"
+      />
+      <div *ngIf="nameField.invalid && nameField.touched" class="text-red-500 text-sm">
+        Name is required
+      </div>
+
+      <input
+        [(ngModel)]="lastName"
+        name="lastName"
+        placeholder="Lastname"
+        class="border rounded-lg px-3 py-2"
+        required
+        #lastNameField="ngModel"
+      />
+      <div *ngIf="lastNameField.invalid && lastNameField.touched" class="text-red-500 text-sm">
+        Lastname is required
+      </div>
+
+      <input
+        [(ngModel)]="umcn"
+        name="umcn"
+        placeholder="UMCN"
+        class="border rounded-lg px-3 py-2"
+        required
+        #umcnField="ngModel"
+      />
+      <div *ngIf="umcnField.invalid && umcnField.touched" class="text-red-500 text-sm">
+        UMCN is required
+      </div>
+
+      <select
+        [(ngModel)]="role"
+        name="role"
+        class="border rounded-lg px-3 py-2"
+        required
+        #roleField="ngModel"
+      >
+        <option value="" disabled>Chose role</option>
+        <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
+      </select>
+      <div *ngIf="roleField.invalid && roleField.touched" class="text-red-500 text-sm">
+        Role is required
+      </div>
+
+      <button
+        type="submit"
+        class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg"
+        [disabled]="form.invalid"
+      >
+        Save profile
+      </button>
+    </form>
+
+    <p *ngIf="error" class="text-red-500 text-sm mt-3">{{ error }}</p>
+  </div>
+</div>
