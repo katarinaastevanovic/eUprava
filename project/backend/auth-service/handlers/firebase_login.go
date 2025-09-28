@@ -117,46 +117,76 @@ func CompleteProfileHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Ako je STUDENT, kreiraj medicinski zapis
-	if user.Role == "STUDENT" {
-		body, _ := json.Marshal(map[string]interface{}{
-			"userId": user.ID,
-		})
-
-		req, _ := http.NewRequest(
-			"POST",
-			"http://medical-service:8082/medical-records",
-			bytes.NewBuffer(body),
-		)
-		req.Header.Set("Content-Type", "application/json")
-
-		// Generiši JWT token za STUDENT-a i dodaj u header
-		jwtToken, _ := services.GenerateJWT(user.ID, user.Username, string(user.Role))
-		req.Header.Set("Authorization", "Bearer "+jwtToken)
-
-		client := &http.Client{}
-		resp, err := client.Do(req)
-		if err != nil {
-			log.Printf("HTTP request failed when creating patient/medical record: %v", err)
-			http.Error(w, "Failed to create patient/medical record", http.StatusInternalServerError)
-			return
-		}
-		defer resp.Body.Close()
-
-		if resp.StatusCode != http.StatusCreated {
-			log.Printf("Medical service returned status %d when creating patient/medical record", resp.StatusCode)
-			http.Error(w, "Failed to create patient/medical record", http.StatusInternalServerError)
-			return
-		}
-	}
-
-	// Generiši i vrati JWT za korisnika
-	token, err := services.GenerateJWT(user.ID, user.Username, string(user.Role))
+	jwtToken, err := services.GenerateJWT(user.ID, user.Username, string(user.Role))
 	if err != nil {
 		log.Printf("Failed to generate JWT: %v", err)
 		http.Error(w, "Failed to generate JWT", http.StatusInternalServerError)
 		return
 	}
 
-	json.NewEncoder(w).Encode(map[string]string{"token": token})
+	client := &http.Client{}
+
+	switch user.Role {
+	case "STUDENT":
+		patientBody, _ := json.Marshal(map[string]interface{}{
+			"userId":   user.ID,
+			"name":     user.Name,
+			"lastName": user.LastName,
+		})
+		patientReq, _ := http.NewRequest("POST", "http://medical-service:8082/patients", bytes.NewBuffer(patientBody))
+		patientReq.Header.Set("Content-Type", "application/json")
+		patientReq.Header.Set("Authorization", "Bearer "+jwtToken)
+
+		resp, err := client.Do(patientReq)
+		if err != nil || resp.StatusCode != http.StatusCreated {
+			log.Printf("Failed to create patient: %v, status: %v", err, resp.StatusCode)
+			http.Error(w, "Failed to create patient", http.StatusInternalServerError)
+			return
+		}
+		defer resp.Body.Close()
+
+		var createdPatient struct {
+			ID uint `json:"id"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&createdPatient); err != nil {
+			log.Printf("Failed to decode patient response: %v", err)
+			http.Error(w, "Failed to decode patient response", http.StatusInternalServerError)
+			return
+		}
+
+		recordBody, _ := json.Marshal(map[string]interface{}{
+			"patientId": createdPatient.ID,
+		})
+		recordReq, _ := http.NewRequest("POST", "http://medical-service:8082/medical-records", bytes.NewBuffer(recordBody))
+		recordReq.Header.Set("Content-Type", "application/json")
+		recordReq.Header.Set("Authorization", "Bearer "+jwtToken)
+
+		resp, err = client.Do(recordReq)
+		if err != nil || resp.StatusCode != http.StatusCreated {
+			log.Printf("Failed to create medical record: %v, status: %v", err, resp.StatusCode)
+			http.Error(w, "Failed to create medical record", http.StatusInternalServerError)
+			return
+		}
+		defer resp.Body.Close()
+
+	case "DOCTOR":
+		doctorBody, _ := json.Marshal(map[string]interface{}{
+			"userId":   user.ID,
+			"name":     user.Name,
+			"lastName": user.LastName,
+		})
+		doctorReq, _ := http.NewRequest("POST", "http://medical-service:8082/doctors", bytes.NewBuffer(doctorBody))
+		doctorReq.Header.Set("Content-Type", "application/json")
+		doctorReq.Header.Set("Authorization", "Bearer "+jwtToken)
+
+		resp, err := client.Do(doctorReq)
+		if err != nil || resp.StatusCode != http.StatusCreated {
+			log.Printf("Failed to create doctor: %v, status: %v", err, resp.StatusCode)
+			http.Error(w, "Failed to create doctor", http.StatusInternalServerError)
+			return
+		}
+		defer resp.Body.Close()
+	}
+
+	json.NewEncoder(w).Encode(map[string]string{"token": jwtToken})
 }

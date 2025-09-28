@@ -10,7 +10,7 @@ import (
 )
 
 type CreateMedicalRecordRequest struct {
-	UserID uint `json:"userId"`
+	PatientID uint `json:"patientId"`
 }
 
 func CreateMedicalRecord(w http.ResponseWriter, r *http.Request) {
@@ -20,7 +20,7 @@ func CreateMedicalRecord(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	record, err := services.CreateMedicalRecord(req.UserID)
+	record, err := services.CreateMedicalRecord(req.PatientID)
 	if err != nil {
 		http.Error(w, "Failed to create record", http.StatusInternalServerError)
 		return
@@ -90,13 +90,19 @@ func GetFullMedicalRecord(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	record, err := services.GetMedicalRecordByUserID(uint(userID))
+	patient, err := services.GetPatientByUserID(uint(userID))
+	if err != nil {
+		http.Error(w, "Patient not found", http.StatusNotFound)
+		return
+	}
+
+	record, err := services.GetMedicalRecordByPatientID(patient.ID)
 	if err != nil {
 		http.Error(w, "Medical record not found", http.StatusNotFound)
 		return
 	}
 
-	patient, err := services.GetPatientFromAuth(uint(userID))
+	authUser, err := services.GetPatientFromAuth(uint(userID))
 	if err != nil {
 		http.Error(w, "Failed to fetch patient data from auth service", http.StatusInternalServerError)
 		return
@@ -116,11 +122,11 @@ func GetFullMedicalRecord(w http.ResponseWriter, r *http.Request) {
 		Requests        interface{} `json:"requests"`
 	}{
 		PatientID:       record.PatientId,
-		Name:            patient.Name,
-		LastName:        patient.LastName,
-		JMBG:            patient.UMCN,
-		BirthDate:       patient.BirthDate,
-		Gender:          patient.Gender,
+		Name:            authUser.Name,
+		LastName:        authUser.LastName,
+		JMBG:            authUser.UMCN,
+		BirthDate:       authUser.BirthDate,
+		Gender:          authUser.Gender,
 		Allergies:       record.Allergies,
 		ChronicDiseases: record.ChronicDiseases,
 		LastUpdate:      record.LastUpdate,

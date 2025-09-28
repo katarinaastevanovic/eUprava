@@ -36,6 +36,11 @@ func main() {
 	doctorRouter.HandleFunc("/requests/{id}/approve", handlers.ApproveRequest).Methods("PATCH")
 	doctorRouter.HandleFunc("/requests/{id}/reject", handlers.RejectRequest).Methods("PATCH")
 
+	serviceRouter := r.PathPrefix("/").Subrouter()
+	serviceRouter.Use(middleware.JWTAuth)
+	serviceRouter.HandleFunc("/patients", handlers.CreatePatientHandler).Methods("POST")
+	serviceRouter.HandleFunc("/doctors", handlers.CreateDoctorHandler).Methods("POST")
+
 	handler := corsMiddleware(r)
 
 	log.Println("Medical service listening on port 8082")
