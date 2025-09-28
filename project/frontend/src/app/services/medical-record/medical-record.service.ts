@@ -12,11 +12,19 @@ export class MedicalRecordService {
   constructor(private http: HttpClient) {}
 
   getFullRecord(userId: number): Observable<FullMedicalRecord> {
-  return this.http.get<FullMedicalRecord>(`${this.apiUrl}/full/${userId}`);
+  const token = localStorage.getItem('jwt');
+  const headers = { Authorization: `Bearer ${token}` };
+  return this.http.get<FullMedicalRecord>(`${this.apiUrl}/full/${userId}`, { headers });
 }
 
 createRecord(userId: number): Observable<FullMedicalRecord> {
-  return this.http.post<FullMedicalRecord>(`http://localhost:8080/api/medical/medical-records`, { userId });
+  const token = localStorage.getItem('jwt');
+  const headers = { Authorization: `Bearer ${token}` };
+  return this.http.post<FullMedicalRecord>(
+    `${this.apiUrl}/medical-records`,
+    { userId },
+    { headers }
+  );
 }
 
 updateRecord(record: FullMedicalRecord) {
