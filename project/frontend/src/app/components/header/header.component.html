@@ -1,19 +1,20 @@
 <header class="bg-gray-800 text-white p-4 shadow-md relative z-50">
   <div class="container mx-auto flex justify-between items-center">
     <h1 class="text-xl font-bold">My App</h1>
-    
+
     <nav class="flex items-center space-x-3">
       <a routerLink="/" class="px-3 hover:text-gray-200">Home</a>
       <a routerLink="/about" class="px-3 hover:text-gray-200">About</a>
       <a routerLink="/contact" class="px-3 hover:text-gray-200">Contact</a>
       <a routerLink="/register" class="px-3 font-semibold hover:text-gray-200" *ngIf="!isLoggedIn()">Register</a>
-    
-      <a routerLink="/medical-record" class="px-3 font-semibold hover:text-gray-200" *ngIf="isLoggedIn()">Medical Record</a>
+       <a href="/login" class="px-3 font-semibold hover:text-gray-200">Login</a>
+
+      <a routerLink="/medical-record" class="px-3 font-semibold hover:text-gray-200"*ngIf="isLoggedIn()">Medical Record</a>
       <a routerLink="/requests" class="px-3 font-semibold hover:text-gray-200" *ngIf="isLoggedIn()">Examination requests</a>
     </nav>
 
-    <div class="flex items-center space-x-3" *ngIf="isLoggedIn()">
-      <a routerLink="/profile" class="hover:text-gray-200">
+    <div class="flex items-center space-x-3"*ngIf="isLoggedIn()">
+      <a href="/profile" class="hover:text-gray-200">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
              viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

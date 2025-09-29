@@ -10,6 +10,8 @@ import { PatientRequestsComponent } from './components/patient-request/patient-r
 import { DoctorRequestsComponent } from './components/doctor-request/doctor-request.component'; 
 import { DoctorApprovedRequestsComponent } from './components/doctor-approved-requests/doctor-approved-requests.component';
 import { ExaminationFormComponent } from './components/examination/examination.component';
+import { ClassroomComponent } from './components/classroom/classroom.component';
+import { StudentProfileComponent } from './components/student-profile/student-profile.component';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -22,7 +24,9 @@ export const routes: Routes = [
     { path: 'requests', component: PatientRequestsComponent },
     { path: 'doctors-requests', component: DoctorRequestsComponent },
     { path: 'approved-requests', component: DoctorApprovedRequestsComponent },
-      { path: 'examination/:id', component: ExaminationFormComponent },
+    { path: 'examination/:id', component: ExaminationFormComponent },
+    { path: 'classroom/:id', component: ClassroomComponent },
+    {path: 'student/:id/profile',component: StudentProfileComponent},
     { path: '', redirectTo: '', pathMatch: 'full' },
     { path: '**', redirectTo: '' }
 ];

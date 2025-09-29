@@ -59,6 +59,7 @@ services:
     environment:
       PORT: ${SCHOOL_CONTAINER_PORT}
       DATABASE_URL: ${SCHOOL_DATABASE_URL}
+      AUTH_SERVICE_URL: http://auth-service:8081
     depends_on:
       - postgres
     networks:

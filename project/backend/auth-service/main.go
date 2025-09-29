@@ -14,13 +14,13 @@ func main() {
 	database.Connect()
 
 	r := mux.NewRouter()
-
 	r.HandleFunc("/register", handlers.RegisterHandler).Methods("POST")
 	r.HandleFunc("/api/check-username", handlers.CheckUsernameHandler).Methods("GET")
 	r.HandleFunc("/login", handlers.LoginHandler).Methods("POST")
 	r.HandleFunc("/firebase-login", handlers.FirebaseLoginHandler).Methods("POST")
 	r.HandleFunc("/complete-profile", handlers.CompleteProfileHandler).Methods("POST")
 	r.Handle("/profile", middleware.JWTAuth(http.HandlerFunc(handlers.GetCurrentUser))).Methods("GET")
+	r.HandleFunc("/api/members/batch", handlers.GetMembersBatchHandler).Methods("POST")
 	r.HandleFunc("/patients/{userId}", handlers.GetPatientHandler).Methods("GET")
 	r.HandleFunc("/users/doctors", handlers.GetAllDoctorsHandler).Methods("GET")
 	r.HandleFunc("/users/students", handlers.GetAllStudentsHandler).Methods("GET")

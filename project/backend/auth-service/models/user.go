@@ -17,5 +17,5 @@ type Member struct {
 	Role        Role      `gorm:"type:varchar(20);not null"`
 	BirthDate   time.Time `gorm:"not null"`
 	Gender      string    `gorm:"type:char(1);not null"`
-	FirebaseUID string    `gorm:"size:128;uniqueIndex"`
+	FirebaseUID *string   `gorm:"size:128;uniqueIndex"`
 }
