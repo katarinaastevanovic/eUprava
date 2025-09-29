@@ -10,9 +10,14 @@ import (
 	"school-service/services"
 
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+
+	if err := godotenv.Load(); err != nil {
+		log.Println("⚠️  Nije pronađen .env fajl, koristim sistemske varijable")
+	}
 
 	db := database.Connect()
 
@@ -32,6 +37,7 @@ func main() {
 	router.HandleFunc("/api/classes/{classID}/students", schoolHandler.GetStudentsByClass).Methods("GET")
 	router.HandleFunc("/students/{studentID}/subjects/{subjectID}/absences/count", schoolHandler.GetAbsenceCountForSubject).Methods("GET")
 	router.HandleFunc("/students/by-user/{userId}", schoolHandler.GetStudentByUserID).Methods("GET")
+	router.HandleFunc("/students/by-user/{userId}/profile", schoolHandler.GetStudentFullProfile).Methods("GET")
 
 	handler := corsMiddleware(router)
 

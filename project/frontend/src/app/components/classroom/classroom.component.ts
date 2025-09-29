@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { UserService } from '../../services/user/user.service';
 import { FormsModule } from '@angular/forms';
 
@@ -18,7 +18,7 @@ interface StudentDTO {
 @Component({
   selector: 'app-classroom',
   standalone: true,
-  imports: [CommonModule,FormsModule],
+  imports: [CommonModule,FormsModule,RouterLink],
   templateUrl: './classroom.component.html',
   styleUrls: ['./classroom.component.css']
 })
@@ -85,19 +85,34 @@ export class ClassroomComponent implements OnInit {
 toggleSelectMode() {
   this.selectMode = !this.selectMode;
 
-  // Ako zatvorimo mod, resetujemo selekciju
   if (!this.selectMode) {
     this.students.forEach(s => s.selected = false);
   }
 }
 
 confirmSelection() {
-  const selectedStudents = this.students.filter(s => s.selected);
-  console.log('Selected students:', selectedStudents);
-  alert(`Selected ${selectedStudents.length} student(s)`);
+  const selectedStudents = this.students.filter(s => s.selected).map(s => s.id);
 
-  // Trenutno ništa ne šalje na backend
+  if (selectedStudents.length === 0) {
+    alert("You didn't select any student!");
+    return;
+  }
+
+  this.userService.createAbsences(selectedStudents, this.teacherSubjectId).subscribe({
+    next: (res) => {
+      console.log("Absences created:", res);
+      alert(`Sucessfully created ${selectedStudents.length} absences!`);
+
+      this.selectMode = false;
+      this.loadStudents();
+    },
+    error: (err) => {
+      console.error("Greška pri kreiranju izostanaka:", err);
+      alert("Došlo je do greške pri slanju izostanaka.");
+    }
+  });
 }
+
 
 
   

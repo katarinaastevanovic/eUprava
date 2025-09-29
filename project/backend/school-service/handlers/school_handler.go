@@ -272,3 +272,23 @@ func (h *SchoolHandler) GetStudentByUserID(w http.ResponseWriter, r *http.Reques
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(studentDTO)
 }
+
+func (h *SchoolHandler) GetStudentFullProfile(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userIDStr := vars["userId"]
+
+	userID, err := strconv.ParseUint(userIDStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid user ID", http.StatusBadRequest)
+		return
+	}
+
+	dto, err := h.Service.GetFullStudentProfileByUserID(uint(userID))
+	if err != nil {
+		http.Error(w, "Failed to load full student profile: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(dto)
+}

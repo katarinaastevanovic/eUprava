@@ -96,5 +96,17 @@ getStudentByUserId(userId: number): Observable<{ id: number; userId: number }> {
   );
 }
 
+createAbsences(studentIds: number[], subjectId: number, date?: string) {
+  const body = {
+    studentIds,
+    subjectId,
+    date: date || new Date().toISOString() 
+  };
+  return this.http.post( `${environment.schoolApiBaseUrl}/absences`, body);
+}
+
+getUserById(id: number) {
+  return this.http.get<User>(`${environment.schoolApiBaseUrl}/students/by-user/${id}/profile`);
+}
 
 }

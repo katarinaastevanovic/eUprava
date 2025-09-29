@@ -214,12 +214,13 @@ type MembersBatchRequest struct {
 type MemberResponse struct {
 	ID       uint   `json:"id"`
 	Name     string `json:"name"`
-	LastName string `json:"lastName"`
+	LastName string `json:"last_name"`
+	Email    string `json:"email"`
 }
 
 func GetMembersByIDs(ids []uint) ([]MemberResponse, error) {
 	var members []models.Member
-	if err := database.DB.Select("id, name, last_name").
+	if err := database.DB.Select("id, name, last_name, email").
 		Where("id IN ?", ids).
 		Find(&members).Error; err != nil {
 		return nil, err
@@ -231,6 +232,7 @@ func GetMembersByIDs(ids []uint) ([]MemberResponse, error) {
 			ID:       m.ID,
 			Name:     m.Name,
 			LastName: m.LastName,
+			Email:    m.Email,
 		}
 	}
 
