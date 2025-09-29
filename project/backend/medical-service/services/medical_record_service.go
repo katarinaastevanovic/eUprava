@@ -94,3 +94,12 @@ func GetMedicalRecordByPatientID(patientID uint) (*models.MedicalRecord, error) 
 	}
 	return &record, nil
 }
+
+func GetMedicalRecordIdByRequest(requestId uint) (uint, error) {
+	var request models.Request
+	err := database.DB.First(&request, requestId).Error
+	if err != nil {
+		return 0, err
+	}
+	return request.MedicalRecordId, nil
+}

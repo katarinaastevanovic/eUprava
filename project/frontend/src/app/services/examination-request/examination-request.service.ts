@@ -98,4 +98,12 @@ export class ExaminationRequestService {
       this.getAuthHeaders()
     );
   }
+
+  getApprovedRequestsByDoctor(doctorId: number): Observable<RequestWithStudent[]> {
+  return this.http.get<RequestWithStudent[]>(
+    `${this.apiGatewayUrl}/medical/requests/doctor/${doctorId}/approved`,
+    this.getAuthHeaders()
+  );
+  }
+
 }

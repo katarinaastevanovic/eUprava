@@ -121,3 +121,36 @@ func getStudentNameFromAuth(userId uint) string {
 
 	return fmt.Sprintf("%s %s", user.Name, user.LastName)
 }
+
+func GetApprovedRequestsByDoctorWithStudent(doctorId uint) ([]RequestWithStudent, error) {
+	var requests []models.Request
+	if err := database.DB.Where("doctor_id = ? AND status = ?", doctorId, models.APPROVED).Find(&requests).Error; err != nil {
+		return nil, err
+	}
+
+	var results []RequestWithStudent
+	for _, req := range requests {
+		var record models.MedicalRecord
+		if err := database.DB.First(&record, req.MedicalRecordId).Error; err != nil {
+			continue
+		}
+
+		var patient models.Patient
+		if err := database.DB.First(&patient, record.PatientId).Error; err != nil {
+			continue
+		}
+
+		studentName := getStudentNameFromAuth(patient.UserId)
+
+		results = append(results, RequestWithStudent{
+			ID:              req.ID,
+			MedicalRecordId: req.MedicalRecordId,
+			DoctorId:        req.DoctorId,
+			Type:            req.Type,
+			Status:          req.Status,
+			StudentName:     studentName,
+		})
+	}
+
+	return results, nil
+}

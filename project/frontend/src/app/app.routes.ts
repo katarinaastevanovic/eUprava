@@ -8,6 +8,8 @@ import { MedicalRecordComponent } from './components/medical-record/medical-reco
 import { ExaminationRequestComponent } from './components/examination-request/examination-request.component'; 
 import { PatientRequestsComponent } from './components/patient-request/patient-request.component'; 
 import { DoctorRequestsComponent } from './components/doctor-request/doctor-request.component'; 
+import { DoctorApprovedRequestsComponent } from './components/doctor-approved-requests/doctor-approved-requests.component';
+import { ExaminationFormComponent } from './components/examination/examination.component';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -19,6 +21,8 @@ export const routes: Routes = [
     { path: 'create-request', component: ExaminationRequestComponent },
     { path: 'requests', component: PatientRequestsComponent },
     { path: 'doctors-requests', component: DoctorRequestsComponent },
+    { path: 'approved-requests', component: DoctorApprovedRequestsComponent },
+      { path: 'examination/:id', component: ExaminationFormComponent },
     { path: '', redirectTo: '', pathMatch: 'full' },
     { path: '**', redirectTo: '' }
 ];

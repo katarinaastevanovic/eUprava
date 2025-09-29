@@ -137,3 +137,17 @@ func GetFullMedicalRecord(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(fullRecord)
 }
+
+func GetMedicalRecordIdByRequest(w http.ResponseWriter, r *http.Request) {
+	idStr := mux.Vars(r)["requestId"]
+	requestId, _ := strconv.Atoi(idStr)
+
+	record, err := services.GetMedicalRecordIdByRequest(uint(requestId))
+	if err != nil {
+		http.Error(w, "Medical record not found", http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(record)
+}

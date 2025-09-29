@@ -139,3 +139,17 @@ func RejectRequest(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(req)
 }
+
+func GetApprovedRequestsByDoctor(w http.ResponseWriter, r *http.Request) {
+	idStr := mux.Vars(r)["id"]
+	doctorId, _ := strconv.Atoi(idStr)
+
+	requests, err := services.GetApprovedRequestsByDoctorWithStudent(uint(doctorId))
+	if err != nil {
+		http.Error(w, "Failed to fetch approved requests", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(requests)
+}
