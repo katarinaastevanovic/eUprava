@@ -17,10 +17,10 @@
     <!-- Kartice učenika -->
     <div class="row flex flex-wrap justify-center gap-8" *ngIf="!loading">
         <div class="single_advisor_profile bg-white rounded-lg shadow-md overflow-hidden w-64 transition hover:shadow-lg flex flex-col justify-between cursor-pointer"
-            *ngFor="let s of students" [routerLink]="['/student', s.userId, 'profile']">
+            *ngFor="let s of students">
 
             <div class="advisor_thumb relative">
-                <img src="https://cdn.discordapp.com/attachments/1090339123463729224/1422245867275948092/image.png?ex=68dbf92e&is=68daa7ae&hm=f94a129359363d7ab393db7036a97feba079a170851cee5af6d9be4a9277ecfd&" alt="" class="w-full h-48 object-cover" />
+                <img src="https://cdn.discordapp.com/attachments/1090339123463729224/1422245867275948092/image.png?ex=68dbf92e&is=68daa7ae&hm=f94a129359363d7ab393db7036a97feba079a170851cee5af6d9be4a9277ecfd&" alt="" class="w-full h-48 object-cover"  [routerLink]="['/student', s.userId, 'profile']" />
                 <div class="social-info absolute bottom-2 right-2 flex gap-2">
                     <a href="#" class="text-white bg-blue-500 p-2 rounded-full"><i class="fa fa-facebook"></i></a>
                     <a href="#" class="text-white bg-sky-400 p-2 rounded-full"><i class="fa fa-twitter"></i></a>
