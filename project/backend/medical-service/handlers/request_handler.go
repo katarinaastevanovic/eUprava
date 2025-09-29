@@ -104,12 +104,13 @@ func GetRequestsByDoctor(w http.ResponseWriter, r *http.Request) {
 	idStr := mux.Vars(r)["id"]
 	doctorId, _ := strconv.Atoi(idStr)
 
-	requests, err := services.GetRequestsByDoctor(uint(doctorId))
+	requests, err := services.GetRequestsByDoctorWithStudent(uint(doctorId))
 	if err != nil {
 		http.Error(w, "Failed to fetch requests", http.StatusInternalServerError)
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(requests)
 }
 

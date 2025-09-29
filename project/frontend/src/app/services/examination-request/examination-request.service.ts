@@ -9,6 +9,14 @@ export interface Request {
   type: 'REGULAR' | 'SPECIALIST' | 'URGENT';
   status?: 'REQUESTED' | 'APPROVED' | 'REJECTED';
 }
+export interface RequestWithStudent {
+  id?: number;
+  medicalRecordId: number;
+  doctorId: number;
+  type: 'REGULAR' | 'SPECIALIST' | 'URGENT';
+  status?: 'REQUESTED' | 'APPROVED' | 'REJECTED';
+  studentName: string;
+}
 
 export interface Doctor {
   id: number;
@@ -54,11 +62,11 @@ export class ExaminationRequestService {
     );
   }
 
-  getRequestsByDoctor(doctorId: number): Observable<Request[]> {
-    return this.http.get<Request[]>(
-      `${this.apiGatewayUrl}/medical/requests/doctor/${doctorId}`,
-      this.getAuthHeaders()
-    );
+  getRequestsByDoctor(doctorId: number): Observable<RequestWithStudent[]> {
+  return this.http.get<RequestWithStudent[]>(
+    `${this.apiGatewayUrl}/medical/requests/doctor/${doctorId}`,
+    this.getAuthHeaders()
+  );
   }
 
   approveRequest(requestId: number): Observable<void> {

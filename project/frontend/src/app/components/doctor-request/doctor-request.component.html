@@ -14,9 +14,7 @@
         </thead>
         <tbody>
           <tr *ngFor="let req of requests" class="hover:bg-teal-100">
-            <td class="px-4 py-2 border border-teal-700">
-              {{ getStudentName(req.medicalRecordId) }}
-            </td>
+            <td class="px-4 py-2 border border-teal-700">{{ req.studentName }}</td>
             <td class="px-4 py-2 border border-teal-700">{{ req.type }}</td>
             <td class="px-4 py-2 border border-teal-700">{{ req.status }}</td>
             <td class="px-4 py-2 border border-teal-700 space-x-2">
