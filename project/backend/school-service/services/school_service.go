@@ -1,7 +1,11 @@
 package services
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"net/http"
 	"school-service/models"
 	"time"
 
@@ -14,6 +18,35 @@ type SchoolService struct {
 
 func NewSchoolService(db *gorm.DB) *SchoolService {
 	return &SchoolService{DB: db}
+}
+
+type AbsenceDTO struct {
+	ID   uint   `json:"id"`
+	Type string `json:"type"`
+	Date string `json:"date"`
+}
+
+type StudentDTO struct {
+	ID               uint         `json:"id"`
+	UserID           uint         `json:"userId"`
+	Name             string       `json:"name"`
+	LastName         string       `json:"lastName"`
+	NumberOfAbsences int          `json:"numberOfAbsences"`
+	Absences         []AbsenceDTO `json:"absences"`
+}
+
+type MemberResponse struct {
+	ID       uint   `json:"id"`
+	Name     string `json:"name"`
+	LastName string `json:"lastName"`
+}
+
+func (s *SchoolService) GetAbsenceCountForSubject(studentID uint, subjectID uint) (int64, error) {
+	var count int64
+	err := s.DB.Model(&models.Absence{}).
+		Where("student_id = ? AND subject_id = ?", studentID, subjectID).
+		Count(&count).Error
+	return count, err
 }
 
 func (s *SchoolService) GetAbsencesByUserID(userID uint) ([]models.Absence, int64, error) {
@@ -46,23 +79,25 @@ func (s *SchoolService) UpdateAbsenceType(absenceID uint, newType models.Absence
 		Update("type", newType).Error
 }
 
-func (s *SchoolService) CreateAbsence(absence *models.Absence) error {
-	if absence.StudentID == 0 {
-		return errors.New("studentId is required")
-	}
-	if absence.SubjectID == 0 {
-		return errors.New("subjectId is required")
+func (s *SchoolService) CreateAbsences(absences []models.Absence) error {
+	for i := range absences {
+		if absences[i].StudentID == 0 {
+			return errors.New("studentId is required")
+		}
+		if absences[i].SubjectID == 0 {
+			return errors.New("subjectId is required")
+		}
+
+		if absences[i].Type == "" {
+			absences[i].Type = models.Pending
+		}
+
+		if absences[i].Date.IsZero() {
+			absences[i].Date = time.Now()
+		}
 	}
 
-	if absence.Type == "" {
-		absence.Type = models.Pending
-	}
-
-	if absence.Date.IsZero() {
-		absence.Date = time.Now()
-	}
-
-	return s.DB.Create(absence).Error
+	return s.DB.Create(&absences).Error
 }
 
 func (s *SchoolService) GetClassesByTeacherID(teacherID uint) ([]models.Class, error) {
@@ -80,14 +115,110 @@ func (s *SchoolService) GetClassesByTeacherID(teacherID uint) ([]models.Class, e
 	return classes, err
 }
 
-func (s *SchoolService) GetStudentsByClassID(classID uint) ([]models.Student, error) {
+func (s *SchoolService) GetStudentsByClassID(classID uint) ([]StudentDTO, error) {
 	var students []models.Student
 
-	err := s.DB.Preload("Absences").Preload("Grades").Preload("Class").
+	err := s.DB.Preload("Absences").
 		Where("class_id = ?", classID).Find(&students).Error
 	if err != nil {
 		return nil, err
 	}
 
-	return students, nil
+	// ako nema učenika u razredu -> vrati prazan slice
+	if len(students) == 0 {
+		return []StudentDTO{}, nil
+	}
+
+	var userIDs []uint
+	for _, st := range students {
+		userIDs = append(userIDs, st.UserID)
+	}
+
+	// pokuša da uzme imena iz auth servisa
+	memberMap, err := fetchMembersByIDs(userIDs)
+	if err != nil {
+		// ako auth ne radi, samo loguj i nastavi sa praznom mapom
+		fmt.Println("warning: failed to fetch members:", err)
+		memberMap = make(map[uint]MemberResponse)
+	}
+
+	var result []StudentDTO
+	for _, st := range students {
+		studentDTO := StudentDTO{
+			ID:               st.ID,
+			UserID:           st.UserID,
+			NumberOfAbsences: st.NumberOfAbsences,
+		}
+
+		if m, ok := memberMap[st.UserID]; ok {
+			studentDTO.Name = m.Name
+			studentDTO.LastName = m.LastName
+		}
+
+		for _, abs := range st.Absences {
+			studentDTO.Absences = append(studentDTO.Absences, AbsenceDTO{
+				ID:   abs.ID,
+				Type: string(abs.Type),
+				Date: abs.Date.Format("2006-01-02"),
+			})
+		}
+
+		result = append(result, studentDTO)
+	}
+
+	return result, nil
+}
+
+func fetchMembersByIDs(ids []uint) (map[uint]MemberResponse, error) {
+	reqBody := map[string][]uint{"ids": ids}
+	body, _ := json.Marshal(reqBody)
+
+	resp, err := http.Post("http://auth-service:8080/api/members/batch", "application/json", bytes.NewBuffer(body))
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("auth-service returned status %d", resp.StatusCode)
+	}
+
+	var members []MemberResponse
+	if err := json.NewDecoder(resp.Body).Decode(&members); err != nil {
+		return nil, err
+	}
+
+	result := make(map[uint]MemberResponse)
+	for _, m := range members {
+		result[m.ID] = m
+	}
+
+	return result, nil
+}
+
+type StudentByUserDTO struct {
+	ID     uint `json:"id"`
+	UserID uint `json:"userId"`
+}
+
+func (s *SchoolService) GetStudentByUserID(userID uint) (*models.Student, error) {
+	var student models.Student
+	if err := s.DB.Where("user_id = ?", userID).First(&student).Error; err != nil {
+		return nil, err
+	}
+	return &student, nil
+}
+
+func (s *SchoolService) GetStudentDTOByUserID(userID uint) (*StudentByUserDTO, error) {
+	student, err := s.GetStudentByUserID(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	dto := &StudentByUserDTO{
+		ID:     student.ID,
+		UserID: student.UserID,
+	}
+
+	return dto, nil
 }

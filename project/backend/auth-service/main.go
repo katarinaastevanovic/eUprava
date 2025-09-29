@@ -19,6 +19,7 @@ func main() {
 	mux.HandleFunc("/firebase-login", handlers.FirebaseLoginHandler)
 	mux.HandleFunc("/complete-profile", handlers.CompleteProfileHandler)
 	mux.Handle("/profile", middleware.JWTAuth(http.HandlerFunc(handlers.GetCurrentUser)))
+	mux.HandleFunc("/api/members/batch", handlers.GetMembersBatchHandler)
 
 	handler := corsMiddleware(mux)
 

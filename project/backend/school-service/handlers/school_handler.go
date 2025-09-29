@@ -33,11 +33,11 @@ type CreateAbsenceRequest struct {
 }
 
 type AbsenceResponse2 struct {
-	ID        uint      `json:"id"`
-	Type      string    `json:"type"`
-	Date      time.Time `json:"date"`
-	StudentID uint      `json:"student_id"`
-	SubjectID uint      `json:"subject_id"`
+	ID         uint      `json:"id"`
+	Type       string    `json:"type"`
+	Date       time.Time `json:"date"`
+	StudentIDs []uint    `json:"studentIds"`
+	SubjectID  uint      `json:"subjectId"`
 }
 
 type ClassDTO struct {
@@ -124,39 +124,44 @@ func (h *SchoolHandler) UpdateAbsenceType(w http.ResponseWriter, r *http.Request
 	})
 }
 
-func (h *SchoolHandler) CreateAbsence(w http.ResponseWriter, r *http.Request) {
-	var req CreateAbsenceRequest
+func (h *SchoolHandler) CreateAbsences(w http.ResponseWriter, r *http.Request) {
+	var req AbsenceResponse2
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	absence := models.Absence{
-		Type:      models.Pending,
-		Date:      req.Date,
-		StudentID: req.StudentID,
-		SubjectID: req.SubjectID,
+	if len(req.StudentIDs) == 0 {
+		http.Error(w, "studentIds are required", http.StatusBadRequest)
+		return
+	}
+	if req.SubjectID == 0 {
+		http.Error(w, "subjectId is required", http.StatusBadRequest)
+		return
 	}
 
-	if absence.Date.IsZero() {
-		absence.Date = time.Now()
+	date := req.Date
+	if date.IsZero() {
+		date = time.Now()
 	}
 
-	if err := h.Service.CreateAbsence(&absence); err != nil {
+	var absences []models.Absence
+	for _, sid := range req.StudentIDs {
+		absences = append(absences, models.Absence{
+			Type:      models.Pending,
+			Date:      date,
+			StudentID: sid,
+			SubjectID: req.SubjectID,
+		})
+	}
+
+	if err := h.Service.CreateAbsences(absences); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	response := AbsenceResponse2{
-		ID:        absence.ID,
-		Type:      string(absence.Type),
-		Date:      absence.Date,
-		StudentID: absence.StudentID,
-		SubjectID: absence.SubjectID,
-	}
-
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(response)
+	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 }
 
 func (h *SchoolHandler) GetClassesForTeacher(w http.ResponseWriter, r *http.Request) {
@@ -222,4 +227,48 @@ func (h *SchoolHandler) GetStudentsByClass(w http.ResponseWriter, r *http.Reques
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(students)
+}
+
+func (h *SchoolHandler) GetAbsenceCountForSubject(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	studentID, err := strconv.ParseUint(vars["studentID"], 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid student ID", http.StatusBadRequest)
+		return
+	}
+	subjectID, err := strconv.ParseUint(vars["subjectID"], 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid subject ID", http.StatusBadRequest)
+		return
+	}
+
+	count, err := h.Service.GetAbsenceCountForSubject(uint(studentID), uint(subjectID))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]int64{"count": count})
+}
+
+func (h *SchoolHandler) GetStudentByUserID(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userIDStr := vars["userId"]
+
+	userID, err := strconv.ParseUint(userIDStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid user ID", http.StatusBadRequest)
+		return
+	}
+
+	studentDTO, err := h.Service.GetStudentDTOByUserID(uint(userID))
+	if err != nil {
+		http.Error(w, "Student not found", http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(studentDTO)
 }

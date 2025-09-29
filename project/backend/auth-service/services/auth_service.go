@@ -206,3 +206,33 @@ func FindUserByFirebaseUID(uid string) (*models.Member, error) {
 	return &user, nil
 
 }
+
+type MembersBatchRequest struct {
+	IDs []uint `json:"ids"`
+}
+
+type MemberResponse struct {
+	ID       uint   `json:"id"`
+	Name     string `json:"name"`
+	LastName string `json:"lastName"`
+}
+
+func GetMembersByIDs(ids []uint) ([]MemberResponse, error) {
+	var members []models.Member
+	if err := database.DB.Select("id, name, last_name").
+		Where("id IN ?", ids).
+		Find(&members).Error; err != nil {
+		return nil, err
+	}
+
+	result := make([]MemberResponse, len(members))
+	for i, m := range members {
+		result[i] = MemberResponse{
+			ID:       m.ID,
+			Name:     m.Name,
+			LastName: m.LastName,
+		}
+	}
+
+	return result, nil
+}

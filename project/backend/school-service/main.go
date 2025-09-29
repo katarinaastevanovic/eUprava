@@ -27,9 +27,11 @@ func main() {
 	router := mux.NewRouter()
 	router.HandleFunc("/students/{id}/absences", schoolHandler.GetStudentAbsences).Methods("GET")
 	router.HandleFunc("/absences/{id}/type", schoolHandler.UpdateAbsenceType).Methods("PUT")
-	router.HandleFunc("/absences", schoolHandler.CreateAbsence).Methods("POST", "OPTIONS")
+	router.HandleFunc("/absences", schoolHandler.CreateAbsences).Methods("POST", "OPTIONS")
 	router.HandleFunc("/teachers/{id}/classes", schoolHandler.GetClassesForTeacher).Methods("GET")
 	router.HandleFunc("/api/classes/{classID}/students", schoolHandler.GetStudentsByClass).Methods("GET")
+	router.HandleFunc("/students/{studentID}/subjects/{subjectID}/absences/count", schoolHandler.GetAbsenceCountForSubject).Methods("GET")
+	router.HandleFunc("/students/by-user/{userId}", schoolHandler.GetStudentByUserID).Methods("GET")
 
 	handler := corsMiddleware(router)
 

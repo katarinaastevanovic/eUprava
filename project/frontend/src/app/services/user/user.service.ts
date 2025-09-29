@@ -19,6 +19,12 @@ export interface Absence {
   date: string;
   subject: string;
 }
+export interface AbsenceDTO {
+  id: number;
+  type: string;
+  date: string;
+}
+
 export interface ClassDTO {
   id: number;
   title: string;
@@ -27,6 +33,14 @@ export interface ClassDTO {
 export interface TeacherClassesResponse {
   subject_name: string;
   classes: ClassDTO[];
+}
+interface StudentDTO {
+  id: number;
+  userId: number;
+  name: string;
+  lastName: string;
+  numberOfAbsences: number;
+  absences: AbsenceDTO[];
 }
 
 
@@ -61,6 +75,24 @@ export class UserService {
 getTeacherClasses(teacherId: number): Observable<TeacherClassesResponse> {
   return this.http.get<TeacherClassesResponse>(
     `${environment.schoolApiBaseUrl}/teachers/${teacherId}/classes`
+  );
+}
+
+getStudentsByClass(classId: number) {
+  return this.http.get<StudentDTO[]>(
+    `${environment.schoolApiBaseUrl}/api/classes/${classId}/students`
+  );
+}
+
+getAbsenceCountForSubject(studentId: number, subjectId: number): Observable<{ count: number }> {
+  return this.http.get<{ count: number }>(
+    `${environment.schoolApiBaseUrl}/students/${studentId}/subjects/${subjectId}/absences/count`
+  );
+}
+
+getStudentByUserId(userId: number): Observable<{ id: number; userId: number }> {
+  return this.http.get<{ id: number; userId: number }>(
+    `${environment.schoolApiBaseUrl}/students/by-user/${userId}`
   );
 }
 
