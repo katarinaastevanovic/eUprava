@@ -5,7 +5,7 @@
     <div class="mb-4 text-left">
     <label class="block mb-1 text-teal-700 font-medium">Doctor</label>
     <select #doctorSelect required
-            class="w-full border border-teal-400 rounded px-3 py-2 text-gray-400 invalid:text-gray-400">
+            class="w-full border border-teal-400 rounded px-3 py-2 text-black invalid:text-gray-400">
         <option value="" disabled selected hidden>-- Select Doctor --</option>
         <option *ngFor="let doctor of doctors" [value]="doctor.id" class="text-black">
         {{ doctor.name }} {{ doctor.lastName }}
@@ -16,7 +16,7 @@
     <div class="mb-4 text-left">
     <label class="block mb-1 text-teal-700 font-medium">Type</label>
     <select #typeSelect required
-            class="w-full border border-teal-400 rounded px-3 py-2 text-gray-400 invalid:text-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500">
+            class="w-full border border-teal-400 rounded px-3 py-2 text-black invalid:text-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500">
         <option value="" disabled selected hidden>-- Select Type --</option>
         <option value="REGULAR" class="text-black">Regular</option>
         <option value="SPECIALIST" class="text-black">Specialist</option>

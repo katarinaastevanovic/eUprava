@@ -1,19 +1,29 @@
-<header class="bg-gray-800 text-white p-4 shadow-md">
+<header class="bg-gray-800 text-white p-4 shadow-md relative z-50">
   <div class="container mx-auto flex justify-between items-center">
     <h1 class="text-xl font-bold">My App</h1>
-    <nav>
-      <a href="#" class="px-3 hover:text-gray-200">Home</a>
-      <a href="#" class="px-3 hover:text-gray-200">About</a>
-      <a href="#" class="px-3 hover:text-gray-200">Contact</a>
-    <a href="/register" class="px-3 font-semibold hover:text-gray-200">Register</a> 
-    <a href="/medical-record" class="px-3 font-semibold hover:text-gray-200">Medical Record</a>
+    
+    <nav class="flex items-center space-x-3">
+      <a routerLink="/" class="px-3 hover:text-gray-200">Home</a>
+      <a routerLink="/about" class="px-3 hover:text-gray-200">About</a>
+      <a routerLink="/contact" class="px-3 hover:text-gray-200">Contact</a>
+      <a routerLink="/register" class="px-3 font-semibold hover:text-gray-200" *ngIf="!isLoggedIn()">Register</a>
+    
+      <a routerLink="/medical-record" class="px-3 font-semibold hover:text-gray-200" *ngIf="isLoggedIn()">Medical Record</a>
+      <a routerLink="/requests" class="px-3 font-semibold hover:text-gray-200" *ngIf="isLoggedIn()">Examination requests</a>
     </nav>
-   <a href="/profile" class="hover:text-gray-200">
+
+    <div class="flex items-center space-x-3" *ngIf="isLoggedIn()">
+      <a routerLink="/profile" class="hover:text-gray-200">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
              viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M5.121 17.804A10 10 0 0112 14a10 10 0 016.879 3.804M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
         </svg>
       </a>
+      <button (click)="logout()" 
+        class="px-3 py-1 bg-gray-800 hover:bg-gray-700 rounded text-white font-semibold transition">
+        Logout
+      </button>
+    </div>
   </div>
 </header>

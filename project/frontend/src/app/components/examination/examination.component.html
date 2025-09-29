@@ -1,0 +1,23 @@
+<div class="p-4 max-w-3xl mx-auto bg-white rounded shadow">
+  <h2 class="text-xl font-semibold mb-4">Examination Form</h2>
+  <form (ngSubmit)="saveExamination()">
+    <div class="mb-2">
+      <label>Diagnosis:</label>
+      <textarea [(ngModel)]="examination.diagnosis" name="diagnosis" class="w-full border rounded p-2"></textarea>
+    </div>
+    <div class="mb-2">
+      <label>Therapy:</label>
+      <textarea [(ngModel)]="examination.therapy" name="therapy" class="w-full border rounded p-2"></textarea>
+    </div>
+    <div class="mb-2">
+      <label>Notes:</label>
+      <textarea [(ngModel)]="examination.note" name="note" class="w-full border rounded p-2"></textarea>
+    </div>
+    <button class="bg-teal-500 text-white px-4 py-2 rounded hover:bg-teal-600" type="submit">
+      Save Examination
+    </button>
+    <button class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 ml-2" type="button" (click)="generateMedicalCertificate()">
+      Medical Certificate
+    </button>
+  </form>
+</div>
