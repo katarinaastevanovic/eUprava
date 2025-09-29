@@ -38,3 +38,16 @@ func GetExaminationByRequest(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(exam)
 }
+
+func GetExaminationsByMedicalRecord(w http.ResponseWriter, r *http.Request) {
+	idStr := mux.Vars(r)["medicalRecordId"]
+	medicalRecordId, _ := strconv.Atoi(idStr)
+
+	exams, err := services.GetExaminationsByMedicalRecordId(uint(medicalRecordId))
+	if err != nil {
+		http.Error(w, "Examinations not found", http.StatusNotFound)
+		return
+	}
+
+	json.NewEncoder(w).Encode(exams)
+}

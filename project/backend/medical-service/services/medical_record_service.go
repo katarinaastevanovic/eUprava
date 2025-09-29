@@ -89,9 +89,15 @@ func GetPatientByUserID(userID uint) (*models.Patient, error) {
 
 func GetMedicalRecordByPatientID(patientID uint) (*models.MedicalRecord, error) {
 	var record models.MedicalRecord
-	if err := database.DB.Where("patient_id = ?", patientID).First(&record).Error; err != nil {
+
+	if err := database.DB.
+		Preload("Examinations").
+		Preload("Requests").
+		Where("patient_id = ?", patientID).
+		First(&record).Error; err != nil {
 		return nil, err
 	}
+
 	return &record, nil
 }
 

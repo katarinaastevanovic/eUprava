@@ -21,6 +21,7 @@ func main() {
 	studentRouter.HandleFunc("/medical-records", handlers.CreateMedicalRecord).Methods("POST")
 	studentRouter.HandleFunc("/requests", handlers.CreateRequest).Methods("POST")
 	studentRouter.HandleFunc("/requests/patient/{id}", handlers.GetRequestsByPatient).Methods("GET")
+	studentRouter.HandleFunc("/medical-records/{medicalRecordId}/examinations", handlers.GetExaminationsByMedicalRecord).Methods("GET")
 
 	stDocRouter := r.PathPrefix("/").Subrouter()
 	stDocRouter.Use(middleware.JWTAuth)
