@@ -58,27 +58,31 @@ export class ExaminationRequestComponent implements OnInit {
   }
 
   submitRequest(doctorId: number, type: 'REGULAR' | 'SPECIALIST' | 'URGENT') {
-    if (!doctorId || !type) {
-      alert('Please select doctor and type');
-      return;
+  if (!doctorId || !type) {
+    alert('Please select doctor and type');
+    return;
+  }
+
+  const request: Request = {
+    medicalRecordId: this.patientId,
+    doctorId,
+    type
+  };
+
+  console.log("Submitting request payload:", request);
+
+  this.requestService.createRequest(request).subscribe(
+    res => {
+      console.log("Response from backend:", res);
+      alert('Request created!');
+    },
+    err => {
+      console.error("Error creating request:", err);
+      if (err.error) {
+        console.error("Backend error body:", err.error);
+      }
     }
+  );
+}
 
-    const request: Request = {
-      medicalRecordId: this.patientId,
-      doctorId,
-      type
-    };
-
-    this.requestService.createRequest(request).subscribe(
-      res => {
-        alert('Request created!');
-      },
-      err => console.error(err)
-    );
-  }
-
-  getDoctorName(doctorId: number): string {
-    const doctor = this.doctors.find(d => d.id === doctorId);
-    return doctor ? `${doctor.name} ${doctor.lastName}` : '';
-  }
 }

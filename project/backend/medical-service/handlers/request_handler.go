@@ -1,36 +1,97 @@
 package handlers
 
 import (
+	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"medical-service/models"
 	"medical-service/services"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gorilla/mux"
 )
 
+func getUserIdFromJWT(r *http.Request) (uint, error) {
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" {
+		return 0, errors.New("no Authorization header")
+	}
+
+	parts := strings.Split(authHeader, "Bearer ")
+	if len(parts) != 2 {
+		return 0, errors.New("invalid Authorization header")
+	}
+
+	token := parts[1]
+	payloadPart := strings.Split(token, ".")
+	if len(payloadPart) < 2 {
+		return 0, errors.New("invalid token format")
+	}
+
+	payload, err := base64.RawURLEncoding.DecodeString(payloadPart[1])
+	if err != nil {
+		return 0, err
+	}
+
+	var decoded struct {
+		Sub uint `json:"sub"`
+	}
+	if err := json.Unmarshal(payload, &decoded); err != nil {
+		return 0, err
+	}
+
+	return decoded.Sub, nil
+}
+
 func CreateRequest(w http.ResponseWriter, r *http.Request) {
-	var req models.Request
+	userId, err := getUserIdFromJWT(r)
+	if err != nil {
+		http.Error(w, "Unauthorized: invalid token", http.StatusUnauthorized)
+		return
+	}
+
+	record, err := services.GetMedicalRecordByUserId(userId)
+	if err != nil {
+		http.Error(w, "Medical record not found", http.StatusBadRequest)
+		return
+	}
+
+	var req struct {
+		DoctorId uint                     `json:"doctorId"`
+		Type     models.TypeOfExamination `json:"type"`
+	}
+
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	if err := services.CreateRequest(&req); err != nil {
+	newReq := models.Request{
+		MedicalRecordId: record.ID,
+		DoctorId:        req.DoctorId,
+		Type:            req.Type,
+		Status:          models.REQUESTED,
+	}
+
+	if err := services.CreateRequest(&newReq); err != nil {
 		http.Error(w, "Failed to create request", http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(req)
+	json.NewEncoder(w).Encode(newReq)
 }
 
 func GetRequestsByPatient(w http.ResponseWriter, r *http.Request) {
-	idStr := mux.Vars(r)["id"]
-	patientId, _ := strconv.Atoi(idStr)
+	userId, err := getUserIdFromJWT(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
 
-	requests, err := services.GetRequestsByPatient(uint(patientId))
+	requests, err := services.GetRequestsByPatientUser(userId)
 	if err != nil {
 		http.Error(w, "Failed to fetch requests", http.StatusInternalServerError)
 		return
