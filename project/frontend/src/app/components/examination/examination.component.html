@@ -1,3 +1,13 @@
+<div *ngIf="medicalRecord" class="mb-4 p-4 border rounded bg-gray-100">
+  <h3 class="font-semibold mb-2">Patient Medical Record</h3>
+  <p><strong>Name:</strong> {{ medicalRecord.name }} {{ medicalRecord.lastName }}</p>
+  <p><strong>JMBG:</strong> {{ medicalRecord.jmbg }}</p>
+  <p><strong>Birth Date:</strong> {{ medicalRecord.birthDate }}</p>
+  <p><strong>Gender:</strong> {{ medicalRecord.gender }}</p>
+  <p><strong>Allergies:</strong> {{ medicalRecord.allergies }}</p>
+  <p><strong>Chronic Diseases:</strong> {{ medicalRecord.chronicDiseases }}</p>
+</div>
+
 <div class="p-4 max-w-3xl mx-auto bg-white rounded shadow">
   <h2 class="text-xl font-semibold mb-4">Examination Form</h2>
   <form (ngSubmit)="saveExamination()">

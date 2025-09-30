@@ -151,3 +151,49 @@ func GetMedicalRecordIdByRequest(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(record)
 }
+
+func GetFullMedicalRecordById(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	idStr := vars["medicalRecordId"]
+
+	recordID, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Invalid medicalRecordId", http.StatusBadRequest)
+		return
+	}
+
+	record, err := services.GetMedicalRecordByID(uint(recordID))
+	if err != nil {
+		http.Error(w, "Medical record not found", http.StatusNotFound)
+		return
+	}
+
+	patient, err := services.GetPatientByID(record.PatientId)
+	if err != nil {
+		http.Error(w, "Patient not found", http.StatusNotFound)
+		return
+	}
+
+	authUser, err := services.GetPatientFromAuth(patient.UserId)
+	if err != nil {
+		http.Error(w, "Failed to fetch patient data", http.StatusInternalServerError)
+		return
+	}
+
+	fullRecord := map[string]interface{}{
+		"patientId":       record.PatientId,
+		"name":            authUser.Name,
+		"lastName":        authUser.LastName,
+		"jmbg":            authUser.UMCN,
+		"birthDate":       authUser.BirthDate,
+		"gender":          authUser.Gender,
+		"allergies":       record.Allergies,
+		"chronicDiseases": record.ChronicDiseases,
+		"lastUpdate":      record.LastUpdate,
+		"examinations":    record.Examinations,
+		"requests":        record.Requests,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(fullRecord)
+}

@@ -12,7 +12,6 @@ import { ExaminationService, Examination } from '../../services/examination/exam
 })
 export class ExaminationFormComponent implements OnInit {
   requestId!: number;
-  medicalRecordId!: number;
   showMedicalCertificateButton: boolean = false;
 
   examination: Examination = {
@@ -23,10 +22,12 @@ export class ExaminationFormComponent implements OnInit {
     note: ''
   };
 
+  medicalRecord: any; 
+
   constructor(
     private route: ActivatedRoute,
     private examService: ExaminationService,
-    private router: Router   // <-- dodan Router
+    private router: Router
   ) { }
 
   ngOnInit() {
@@ -35,6 +36,9 @@ export class ExaminationFormComponent implements OnInit {
     const saved = sessionStorage.getItem(`examination-${this.requestId}`);
     if (saved) {
       this.examination = JSON.parse(saved);
+      if (this.examination.medicalRecordId) {
+        this.loadFullMedicalRecord(this.examination.medicalRecordId);
+      }
     } else {
       this.examination = {
         requestId: this.requestId,
@@ -45,12 +49,24 @@ export class ExaminationFormComponent implements OnInit {
       };
 
       this.examService.getMedicalRecordIdByRequest(this.requestId).subscribe({
-        next: recordId => this.examination.medicalRecordId = recordId
+        next: recordId => {
+          this.examination.medicalRecordId = recordId;
+          this.loadFullMedicalRecord(recordId);
+        },
+        error: err => console.error('Failed to get medicalRecordId:', err)
       });
     }
 
     this.examService.getRequestById(this.requestId).subscribe({
-      next: req => this.showMedicalCertificateButton = !!req.needMedicalCertificate
+      next: req => this.showMedicalCertificateButton = !!req.needMedicalCertificate,
+      error: err => console.error('Failed to load request info:', err)
+    });
+  }
+
+  private loadFullMedicalRecord(medicalRecordId: number) {
+    this.examService.getFullMedicalRecordById(medicalRecordId).subscribe({
+      next: record => this.medicalRecord = record,
+      error: err => console.error('Failed to load medical record:', err)
     });
   }
 
@@ -61,16 +77,15 @@ export class ExaminationFormComponent implements OnInit {
         sessionStorage.removeItem(`examination-${this.requestId}`);
         this.router.navigate(['/approved-requests']);
       },
-      error: err => alert('Failed to save examination.')
+      error: err => {
+        console.error('Failed to save examination:', err);
+        alert('Failed to save examination.');
+      }
     });
   }
 
   goToMedicalCertificate() {
-    sessionStorage.setItem(
-      `examination-${this.requestId}`,
-      JSON.stringify(this.examination)
-    );
+    sessionStorage.setItem(`examination-${this.requestId}`, JSON.stringify(this.examination));
     this.router.navigate(['/medical-certificate', this.requestId]);
   }
-
 }

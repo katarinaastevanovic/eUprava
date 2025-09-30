@@ -19,6 +19,7 @@ export interface RequestInfo {
 })
 export class ExaminationService {
   private http = inject(HttpClient);
+  private baseUrl = 'http://localhost:8080/api/medical';
   private apiUrl = 'http://localhost:8080/api/medical/examinations';
   private requestsUrl = 'http://localhost:8080/api/medical/requests';
 
@@ -52,7 +53,11 @@ export class ExaminationService {
   getRequestById(requestId: number): Observable<RequestInfo> {
     return this.http.get<any>(`${this.requestsUrl}/${requestId}`, this.getAuthHeaders())
       .pipe(
-        map(res => ({ needMedicalCertificate: res.NeedMedicalCertificate }))
+        map(res => ({ needMedicalCertificate: res.needMedicalCertificate }))
       );
+  }
+
+  getFullMedicalRecordById(medicalRecordId: number): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/medical-records/${medicalRecordId}`, this.getAuthHeaders());
   }
 }
