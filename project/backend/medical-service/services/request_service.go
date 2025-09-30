@@ -154,3 +154,11 @@ func GetApprovedRequestsByDoctorWithStudent(doctorId uint) ([]RequestWithStudent
 
 	return results, nil
 }
+
+func GetRequestById(requestId uint) (*models.Request, error) {
+	var req models.Request
+	if err := database.DB.First(&req, requestId).Error; err != nil {
+		return nil, err
+	}
+	return &req, nil
+}

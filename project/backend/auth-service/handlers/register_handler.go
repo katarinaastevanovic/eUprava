@@ -42,20 +42,77 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	medicalReq := map[string]interface{}{
-		"userId": user.ID,
-	}
-
-	body, _ := json.Marshal(medicalReq)
-
-	resp, err := http.Post("http://medical-service:8082/medical-records", "application/json", bytes.NewBuffer(body))
-	if err != nil || resp.StatusCode != http.StatusCreated {
-		http.Error(w, "User registered but failed to create medical record", http.StatusAccepted)
+	jwtToken, err := services.GenerateJWT(user.ID, user.Username, string(user.Role))
+	if err != nil {
+		http.Error(w, "Failed to generate JWT", http.StatusInternalServerError)
 		return
 	}
 
+	client := &http.Client{}
+
+	switch user.Role {
+	case "STUDENT":
+		patientBody, _ := json.Marshal(map[string]interface{}{
+			"userId":   user.ID,
+			"name":     user.Name,
+			"lastName": user.LastName,
+		})
+		patientReq, _ := http.NewRequest("POST", "http://medical-service:8082/patients", bytes.NewBuffer(patientBody))
+		patientReq.Header.Set("Content-Type", "application/json")
+		patientReq.Header.Set("Authorization", "Bearer "+jwtToken)
+
+		resp, err := client.Do(patientReq)
+		if err != nil || resp.StatusCode != http.StatusCreated {
+			http.Error(w, "User registered but failed to create patient", http.StatusAccepted)
+			return
+		}
+		defer resp.Body.Close()
+
+		var createdPatient struct {
+			ID uint `json:"id"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&createdPatient); err != nil {
+			http.Error(w, "Failed to decode patient response", http.StatusInternalServerError)
+			return
+		}
+
+		recordBody, _ := json.Marshal(map[string]interface{}{
+			"patientId": createdPatient.ID,
+		})
+		recordReq, _ := http.NewRequest("POST", "http://medical-service:8082/medical-records", bytes.NewBuffer(recordBody))
+		recordReq.Header.Set("Content-Type", "application/json")
+		recordReq.Header.Set("Authorization", "Bearer "+jwtToken)
+
+		resp, err = client.Do(recordReq)
+		if err != nil || resp.StatusCode != http.StatusCreated {
+			http.Error(w, "User registered but failed to create medical record", http.StatusAccepted)
+			return
+		}
+		defer resp.Body.Close()
+
+	case "DOCTOR":
+		doctorBody, _ := json.Marshal(map[string]interface{}{
+			"userId":   user.ID,
+			"name":     user.Name,
+			"lastName": user.LastName,
+		})
+		doctorReq, _ := http.NewRequest("POST", "http://medical-service:8082/doctors", bytes.NewBuffer(doctorBody))
+		doctorReq.Header.Set("Content-Type", "application/json")
+		doctorReq.Header.Set("Authorization", "Bearer "+jwtToken)
+
+		resp, err := client.Do(doctorReq)
+		if err != nil || resp.StatusCode != http.StatusCreated {
+			http.Error(w, "User registered but failed to create doctor", http.StatusAccepted)
+			return
+		}
+		defer resp.Body.Close()
+	}
+
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte("User registered successfully and medical record created"))
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "User registered successfully",
+		"token":   jwtToken,
+	})
 }
 
 func CheckUsernameHandler(w http.ResponseWriter, r *http.Request) {
