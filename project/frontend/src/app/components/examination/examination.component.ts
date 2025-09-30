@@ -31,37 +31,44 @@ export class ExaminationFormComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    this.requestId = Number(this.route.snapshot.paramMap.get('id'));
+  this.requestId = Number(this.route.snapshot.paramMap.get('id'));
+  console.log('Request ID from route:', this.requestId);
 
-    const saved = sessionStorage.getItem(`examination-${this.requestId}`);
-    if (saved) {
-      this.examination = JSON.parse(saved);
-      if (this.examination.medicalRecordId) {
-        this.loadFullMedicalRecord(this.examination.medicalRecordId);
-      }
-    } else {
-      this.examination = {
-        requestId: this.requestId,
-        medicalRecordId: 0,
-        diagnosis: '',
-        therapy: '',
-        note: ''
-      };
-
-      this.examService.getMedicalRecordIdByRequest(this.requestId).subscribe({
-        next: recordId => {
-          this.examination.medicalRecordId = recordId;
-          this.loadFullMedicalRecord(recordId);
-        },
-        error: err => console.error('Failed to get medicalRecordId:', err)
-      });
+  const saved = sessionStorage.getItem(`examination-${this.requestId}`);
+  if (saved) {
+    this.examination = JSON.parse(saved);
+    if (this.examination.medicalRecordId) {
+      this.loadFullMedicalRecord(this.examination.medicalRecordId);
     }
+  } else {
+    this.examination = {
+      requestId: this.requestId,
+      medicalRecordId: 0,
+      diagnosis: '',
+      therapy: '',
+      note: ''
+    };
 
-    this.examService.getRequestById(this.requestId).subscribe({
-      next: req => this.showMedicalCertificateButton = !!req.needMedicalCertificate,
-      error: err => console.error('Failed to load request info:', err)
+    this.examService.getMedicalRecordIdByRequest(this.requestId).subscribe({
+      next: recordId => {
+        console.log('MedicalRecordId fetched:', recordId);
+        this.examination.medicalRecordId = recordId;
+        this.loadFullMedicalRecord(recordId);
+      },
+      error: err => console.error('Failed to get medicalRecordId:', err)
     });
   }
+
+  this.examService.getRequestById(this.requestId).subscribe({
+    next: req => {
+      console.log('Request fetched:', req); // ceo objekat
+      this.showMedicalCertificateButton = !!req.needMedicalCertificate;
+      console.log('showMedicalCertificateButton value:', this.showMedicalCertificateButton);
+    },
+    error: err => console.error('Failed to load request info:', err)
+  });
+}
+
 
   private loadFullMedicalRecord(medicalRecordId: number) {
     this.examService.getFullMedicalRecordById(medicalRecordId).subscribe({
