@@ -8,7 +8,9 @@ export interface Request {
   doctorId: number;
   type: 'REGULAR' | 'SPECIALIST' | 'URGENT';
   status?: 'REQUESTED' | 'APPROVED' | 'REJECTED';
+  needMedicalCertificate?: boolean;
 }
+
 export interface RequestWithStudent {
   id?: number;
   medicalRecordId: number;
@@ -16,6 +18,7 @@ export interface RequestWithStudent {
   type: 'REGULAR' | 'SPECIALIST' | 'URGENT';
   status?: 'REQUESTED' | 'APPROVED' | 'REJECTED';
   studentName: string;
+  needMedicalCertificate?: boolean;
 }
 
 export interface Doctor {

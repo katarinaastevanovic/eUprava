@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ExaminationService, Examination } from '../../services/examination/examination.service';
@@ -12,7 +12,9 @@ import { ExaminationService, Examination } from '../../services/examination/exam
 })
 export class ExaminationFormComponent implements OnInit {
   requestId!: number;
-  medicalRecordId!: number; 
+  medicalRecordId!: number;
+  showMedicalCertificateButton: boolean = false;
+
   examination: Examination = {
     requestId: 0,
     medicalRecordId: 0,
@@ -23,70 +25,52 @@ export class ExaminationFormComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private examService: ExaminationService
-  ) {}
+    private examService: ExaminationService,
+    private router: Router   // <-- dodan Router
+  ) { }
 
   ngOnInit() {
-  this.requestId = Number(this.route.snapshot.paramMap.get('id'));
-  this.examination.requestId = this.requestId;
+    this.requestId = Number(this.route.snapshot.paramMap.get('id'));
 
-  console.log('Exam form for request ID:', this.requestId);
+    const saved = sessionStorage.getItem(`examination-${this.requestId}`);
+    if (saved) {
+      this.examination = JSON.parse(saved);
+    } else {
+      this.examination = {
+        requestId: this.requestId,
+        medicalRecordId: 0,
+        diagnosis: '',
+        therapy: '',
+        note: ''
+      };
 
-  this.examService.getMedicalRecordIdByRequest(this.requestId).subscribe({
-    next: (recordId: number) => {
-      this.examination.medicalRecordId = recordId;
-      console.log('Loaded medicalRecordId:', recordId);
-    },
-    error: err => {
-      console.error('Failed to load medicalRecordId:', err);
-      alert('Cannot load medical record ID. Examination cannot be saved.');
+      this.examService.getMedicalRecordIdByRequest(this.requestId).subscribe({
+        next: recordId => this.examination.medicalRecordId = recordId
+      });
     }
-  });
-}
 
+    this.examService.getRequestById(this.requestId).subscribe({
+      next: req => this.showMedicalCertificateButton = !!req.needMedicalCertificate
+    });
+  }
 
   saveExamination() {
-  console.log('Preparing to save examination:', this.examination);
-
-  this.examService.createExamination(this.examination)
-    .subscribe({
+    this.examService.createExamination(this.examination).subscribe({
       next: res => {
-        console.log('Examination saved successfully:', res);
         alert('Examination saved successfully!');
+        sessionStorage.removeItem(`examination-${this.requestId}`);
+        this.router.navigate(['/approved-requests']);
       },
-      error: err => {
-        console.error('Failed to save examination. Full error object:', err);
-
-        if (err.error) {
-          console.error('Error body from server:', err.error);
-        }
-
-        if (err.status) {
-          console.error('HTTP status:', err.status);
-        }
-
-        if (err.message) {
-          console.error('Error message:', err.message);
-        }
-
-        alert('Failed to save examination. Check console for details.');
-      }
+      error: err => alert('Failed to save examination.')
     });
-}
-
-
-  generateMedicalCertificate() {
-    this.examService.generateMedicalCertificate(this.requestId)
-      .subscribe(blob => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `medical_certificate_${this.requestId}.pdf`;
-        a.click();
-        window.URL.revokeObjectURL(url);
-      }, err => {
-        console.error('Failed to generate certificate:', err);
-        alert('Failed to generate medical certificate.');
-      });
   }
+
+  goToMedicalCertificate() {
+    sessionStorage.setItem(
+      `examination-${this.requestId}`,
+      JSON.stringify(this.examination)
+    );
+    this.router.navigate(['/medical-certificate', this.requestId]);
+  }
+
 }

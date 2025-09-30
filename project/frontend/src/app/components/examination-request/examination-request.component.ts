@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ExaminationRequestService, Request, Doctor } from '../../services/examination-request/examination-request.service';
 
-
 @Component({
   selector: 'app-request',
   standalone: true,
@@ -11,11 +10,11 @@ import { ExaminationRequestService, Request, Doctor } from '../../services/exami
   templateUrl: './examination-request.component.html',
   styleUrls: ['./examination-request.component.css']
 })
-
 export class ExaminationRequestComponent implements OnInit {
   requests: Request[] = [];
   doctors: Doctor[] = [];
   patientId: number;
+  needMedicalCertificate: boolean = false; 
 
   constructor(private requestService: ExaminationRequestService) {
     this.patientId = this.getUserIdFromToken();
@@ -35,54 +34,53 @@ export class ExaminationRequestComponent implements OnInit {
   }
 
   loadDoctors() {
-  this.requestService.getDoctors().subscribe(
-    (res: any[]) => { 
-      this.doctors = res.map((d: any) => ({ 
-        id: d.ID,
-        name: d.Name,
-        lastName: d.LastName,
-        role: d.Role,
-        email: d.Email
-      }));
-      console.log('Doctors loaded:', this.doctors);
-    },
-    err => console.error(err)
-  );
-}
-
+    this.requestService.getDoctors().subscribe(
+      (res: any[]) => { 
+        this.doctors = res.map((d: any) => ({ 
+          id: d.ID,
+          name: d.Name,
+          lastName: d.LastName,
+          role: d.Role,
+          email: d.Email
+        }));
+        console.log('Doctors loaded:', this.doctors);
+      },
+      err => console.error(err)
+    );
+  }
 
   submitRequestFromSelect(doctorIdString: string, typeString: string) {
     const doctorId = +doctorIdString; 
     const type = typeString as 'REGULAR' | 'SPECIALIST' | 'URGENT';
-    this.submitRequest(doctorId, type);
+    this.submitRequest(doctorId, type, this.needMedicalCertificate);
   }
 
-  submitRequest(doctorId: number, type: 'REGULAR' | 'SPECIALIST' | 'URGENT') {
-  if (!doctorId || !type) {
-    alert('Please select doctor and type');
-    return;
-  }
-
-  const request: Request = {
-    medicalRecordId: this.patientId,
-    doctorId,
-    type
-  };
-
-  console.log("Submitting request payload:", request);
-
-  this.requestService.createRequest(request).subscribe(
-    res => {
-      console.log("Response from backend:", res);
-      alert('Request created!');
-    },
-    err => {
-      console.error("Error creating request:", err);
-      if (err.error) {
-        console.error("Backend error body:", err.error);
-      }
+  submitRequest(doctorId: number, type: 'REGULAR' | 'SPECIALIST' | 'URGENT', needCertificate: boolean) {
+    if (!doctorId || !type) {
+      alert('Please select doctor and type');
+      return;
     }
-  );
-}
 
+    const request: Request = {
+      medicalRecordId: this.patientId,
+      doctorId,
+      type,
+      needMedicalCertificate: needCertificate 
+    };
+
+    console.log("Submitting request payload:", request);
+
+    this.requestService.createRequest(request).subscribe(
+      res => {
+        console.log("Response from backend:", res);
+        alert('Request created!');
+      },
+      err => {
+        console.error("Error creating request:", err);
+        if (err.error) {
+          console.error("Backend error body:", err.error);
+        }
+      }
+    );
+  }
 }

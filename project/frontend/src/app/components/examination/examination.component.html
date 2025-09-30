@@ -16,7 +16,9 @@
     <button class="bg-teal-500 text-white px-4 py-2 rounded hover:bg-teal-600" type="submit">
       Save Examination
     </button>
-    <button class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 ml-2" type="button" (click)="generateMedicalCertificate()">
+    <button *ngIf="showMedicalCertificateButton"
+      class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 ml-2" type="button"
+      (click)="goToMedicalCertificate()">
       Medical Certificate
     </button>
   </form>

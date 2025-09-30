@@ -1,0 +1,25 @@
+<div class="p-4 max-w-3xl mx-auto bg-white rounded shadow">
+  <h2 class="text-xl font-semibold mb-4">Medical Certificate Form</h2>
+  <form (ngSubmit)="saveCertificate()">
+    <div class="mb-2">
+      <label>Date:</label>
+      <input type="date" [(ngModel)]="certificate.date" name="date" class="w-full border rounded p-2" required>
+    </div>
+
+    <div class="mb-2">
+      <label>Type:</label>
+      <select [(ngModel)]="certificate.type" name="type" class="w-full border rounded p-2" required>
+        <option *ngFor="let t of certificateTypes" [value]="t">{{ t }}</option>
+      </select>
+    </div>
+
+    <div class="mb-2">
+      <label>Note:</label>
+      <textarea [(ngModel)]="certificate.note" name="note" class="w-full border rounded p-2"></textarea>
+    </div>
+
+    <button class="bg-teal-500 text-white px-4 py-2 rounded hover:bg-teal-600" type="submit">
+      Save Certificate
+    </button>
+  </form>
+</div>

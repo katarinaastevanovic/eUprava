@@ -40,6 +40,8 @@ func main() {
 	doctorRouter.HandleFunc("/examinations", handlers.CreateExamination).Methods("POST")
 	doctorRouter.HandleFunc("/examinations/{requestId}", handlers.GetExaminationByRequest).Methods("GET")
 	doctorRouter.HandleFunc("/requests/{requestId}/medical-record-id", handlers.GetMedicalRecordIdByRequest).Methods("GET")
+	doctorRouter.HandleFunc("/requests/{requestId}", handlers.GetRequestById).Methods("GET")
+	doctorRouter.HandleFunc("/certificates", handlers.CreateMedicalCertificateHandler).Methods("POST")
 
 	serviceRouter := r.PathPrefix("/").Subrouter()
 	serviceRouter.Use(middleware.JWTAuth)

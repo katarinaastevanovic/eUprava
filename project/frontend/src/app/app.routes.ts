@@ -12,6 +12,7 @@ import { DoctorApprovedRequestsComponent } from './components/doctor-approved-re
 import { ExaminationFormComponent } from './components/examination/examination.component';
 import { ClassroomComponent } from './components/classroom/classroom.component';
 import { StudentProfileComponent } from './components/student-profile/student-profile.component';
+import { MedicalCertificateComponent } from './components/medical-certificate/medical-certificate.component';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -27,6 +28,7 @@ export const routes: Routes = [
     { path: 'examination/:id', component: ExaminationFormComponent },
     { path: 'classroom/:id', component: ClassroomComponent },
     {path: 'student/:id/profile',component: StudentProfileComponent},
+    { path: 'medical-certificate/:requestId', component: MedicalCertificateComponent },
     { path: '', redirectTo: '', pathMatch: 'full' },
     { path: '**', redirectTo: '' }
 ];

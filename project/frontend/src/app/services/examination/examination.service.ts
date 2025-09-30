@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 
 export interface Examination {
   requestId: number;
@@ -10,12 +10,17 @@ export interface Examination {
   note: string;
 }
 
+export interface RequestInfo {
+  needMedicalCertificate: boolean;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class ExaminationService {
   private http = inject(HttpClient);
   private apiUrl = 'http://localhost:8080/api/medical/examinations';
+  private requestsUrl = 'http://localhost:8080/api/medical/requests';
 
   private getAuthHeaders(): { headers: HttpHeaders } {
     const token = localStorage.getItem('jwt');
@@ -30,7 +35,7 @@ export class ExaminationService {
   }
 
   getExaminationByRequest(requestId: number): Observable<Examination> {
-  return this.http.get<Examination>(`${this.apiUrl}/${requestId}`, this.getAuthHeaders());
+    return this.http.get<Examination>(`${this.apiUrl}/${requestId}`, this.getAuthHeaders());
   }
 
   generateMedicalCertificate(requestId: number): Observable<Blob> {
@@ -41,7 +46,13 @@ export class ExaminationService {
   }
 
   getMedicalRecordIdByRequest(requestId: number): Observable<number> {
-  return this.http.get<number>(`http://localhost:8080/api/medical/requests/${requestId}/medical-record-id`, this.getAuthHeaders());
+    return this.http.get<number>(`${this.requestsUrl}/${requestId}/medical-record-id`, this.getAuthHeaders());
   }
 
+  getRequestById(requestId: number): Observable<RequestInfo> {
+    return this.http.get<any>(`${this.requestsUrl}/${requestId}`, this.getAuthHeaders())
+      .pipe(
+        map(res => ({ needMedicalCertificate: res.NeedMedicalCertificate }))
+      );
+  }
 }

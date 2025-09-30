@@ -59,8 +59,9 @@ func CreateRequest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req struct {
-		DoctorId uint                     `json:"doctorId"`
-		Type     models.TypeOfExamination `json:"type"`
+		DoctorId               uint                     `json:"doctorId"`
+		Type                   models.TypeOfExamination `json:"type"`
+		NeedMedicalCertificate *bool                    `json:"needMedicalCertificate"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -69,10 +70,11 @@ func CreateRequest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	newReq := models.Request{
-		MedicalRecordId: record.ID,
-		DoctorId:        req.DoctorId,
-		Type:            req.Type,
-		Status:          models.REQUESTED,
+		MedicalRecordId:        record.ID,
+		DoctorId:               req.DoctorId,
+		Type:                   req.Type,
+		Status:                 models.REQUESTED,
+		NeedMedicalCertificate: req.NeedMedicalCertificate,
 	}
 
 	if err := services.CreateRequest(&newReq); err != nil {
@@ -152,4 +154,22 @@ func GetApprovedRequestsByDoctor(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(requests)
+}
+
+func GetRequestById(w http.ResponseWriter, r *http.Request) {
+	idStr := mux.Vars(r)["requestId"]
+	requestId, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Invalid request ID", http.StatusBadRequest)
+		return
+	}
+
+	req, err := services.GetRequestById(uint(requestId))
+	if err != nil {
+		http.Error(w, "Request not found", http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(req)
 }
