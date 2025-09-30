@@ -10,7 +10,7 @@ import (
 )
 
 type CreateMedicalRecordRequest struct {
-	UserID uint `json:"userId"`
+	PatientID uint `json:"patientId"`
 }
 
 func CreateMedicalRecord(w http.ResponseWriter, r *http.Request) {
@@ -20,7 +20,7 @@ func CreateMedicalRecord(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	record, err := services.CreateMedicalRecord(req.UserID)
+	record, err := services.CreateMedicalRecord(req.PatientID)
 	if err != nil {
 		http.Error(w, "Failed to create record", http.StatusInternalServerError)
 		return
@@ -90,13 +90,19 @@ func GetFullMedicalRecord(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	record, err := services.GetMedicalRecordByUserID(uint(userID))
+	patient, err := services.GetPatientByUserID(uint(userID))
+	if err != nil {
+		http.Error(w, "Patient not found", http.StatusNotFound)
+		return
+	}
+
+	record, err := services.GetMedicalRecordByPatientID(patient.ID)
 	if err != nil {
 		http.Error(w, "Medical record not found", http.StatusNotFound)
 		return
 	}
 
-	patient, err := services.GetPatientFromAuth(uint(userID))
+	authUser, err := services.GetPatientFromAuth(uint(userID))
 	if err != nil {
 		http.Error(w, "Failed to fetch patient data from auth service", http.StatusInternalServerError)
 		return
@@ -116,16 +122,76 @@ func GetFullMedicalRecord(w http.ResponseWriter, r *http.Request) {
 		Requests        interface{} `json:"requests"`
 	}{
 		PatientID:       record.PatientId,
-		Name:            patient.Name,
-		LastName:        patient.LastName,
-		JMBG:            patient.UMCN,
-		BirthDate:       patient.BirthDate,
-		Gender:          patient.Gender,
+		Name:            authUser.Name,
+		LastName:        authUser.LastName,
+		JMBG:            authUser.UMCN,
+		BirthDate:       authUser.BirthDate,
+		Gender:          authUser.Gender,
 		Allergies:       record.Allergies,
 		ChronicDiseases: record.ChronicDiseases,
 		LastUpdate:      record.LastUpdate,
 		Examinations:    record.Examinations,
 		Requests:        record.Requests,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(fullRecord)
+}
+
+func GetMedicalRecordIdByRequest(w http.ResponseWriter, r *http.Request) {
+	idStr := mux.Vars(r)["requestId"]
+	requestId, _ := strconv.Atoi(idStr)
+
+	record, err := services.GetMedicalRecordIdByRequest(uint(requestId))
+	if err != nil {
+		http.Error(w, "Medical record not found", http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(record)
+}
+
+func GetFullMedicalRecordById(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	idStr := vars["medicalRecordId"]
+
+	recordID, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Invalid medicalRecordId", http.StatusBadRequest)
+		return
+	}
+
+	record, err := services.GetMedicalRecordByID(uint(recordID))
+	if err != nil {
+		http.Error(w, "Medical record not found", http.StatusNotFound)
+		return
+	}
+
+	patient, err := services.GetPatientByID(record.PatientId)
+	if err != nil {
+		http.Error(w, "Patient not found", http.StatusNotFound)
+		return
+	}
+
+	authUser, err := services.GetPatientFromAuth(patient.UserId)
+	if err != nil {
+		http.Error(w, "Failed to fetch patient data", http.StatusInternalServerError)
+		return
+	}
+
+	fullRecord := map[string]interface{}{
+		"patientId":       record.PatientId,
+		"name":            authUser.Name,
+		"lastName":        authUser.LastName,
+		"jmbg":            authUser.UMCN,
+		"birthDate":       authUser.BirthDate,
+		"gender":          authUser.Gender,
+		"allergies":       record.Allergies,
+		"chronicDiseases": record.ChronicDiseases,
+		"lastUpdate":      record.LastUpdate,
+		"examinations":    record.Examinations,
+		"requests":        record.Requests,
 	}
 
 	w.Header().Set("Content-Type", "application/json")

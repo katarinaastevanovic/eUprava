@@ -6,4 +6,5 @@ const (
 	REQUESTED TypeOfRequest = "REQUESTED"
 	APPROVED  TypeOfRequest = "APPROVED"
 	REJECTED  TypeOfRequest = "REJECTED"
+	FINISHED  TypeOfRequest = "FINISHED"
 )

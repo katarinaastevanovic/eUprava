@@ -8,6 +8,12 @@ import { MedicalRecordComponent } from './components/medical-record/medical-reco
 import { ExaminationRequestComponent } from './components/examination-request/examination-request.component'; 
 import { PatientRequestsComponent } from './components/patient-request/patient-request.component'; 
 import { DoctorRequestsComponent } from './components/doctor-request/doctor-request.component'; 
+import { DoctorApprovedRequestsComponent } from './components/doctor-approved-requests/doctor-approved-requests.component';
+import { ExaminationFormComponent } from './components/examination/examination.component';
+import { ClassroomComponent } from './components/classroom/classroom.component';
+import { StudentProfileComponent } from './components/student-profile/student-profile.component';
+import { MedicalCertificateComponent } from './components/medical-certificate/medical-certificate.component';
+import { WelcomePageComponent } from './components/welcome-page/welcome-page.component';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -19,6 +25,11 @@ export const routes: Routes = [
     { path: 'create-request', component: ExaminationRequestComponent },
     { path: 'requests', component: PatientRequestsComponent },
     { path: 'doctors-requests', component: DoctorRequestsComponent },
-    { path: '', redirectTo: '', pathMatch: 'full' },
+    { path: 'approved-requests', component: DoctorApprovedRequestsComponent },
+    { path: 'examination/:id', component: ExaminationFormComponent },
+    { path: 'classroom/:id', component: ClassroomComponent },
+    {path: 'student/:id/profile',component: StudentProfileComponent},
+    { path: 'medical-certificate/:requestId', component: MedicalCertificateComponent },
+    { path: '', component: WelcomePageComponent},
     { path: '**', redirectTo: '' }
 ];

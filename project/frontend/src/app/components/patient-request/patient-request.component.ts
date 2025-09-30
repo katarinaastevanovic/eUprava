@@ -1,12 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
+import { RouterModule } from '@angular/router';
 import { ExaminationRequestService, Request, Doctor } from '../../services/examination-request/examination-request.service';
 
 @Component({
   selector: 'app-patient-requests',
   standalone: true,
-  imports: [CommonModule, HttpClientModule],
+  imports: [CommonModule, HttpClientModule, RouterModule],
   templateUrl: './patient-request.component.html',
 })
 
@@ -35,20 +36,20 @@ export class PatientRequestsComponent implements OnInit {
   }
 
   loadRequests() {
-  this.requestService.getRequestsByPatient(this.patientId).subscribe(
-    res => {
-      this.requests = res.map((r: any) => ({
-        id: r.ID,
-        medicalRecordId: r.MedicalRecordId,
-        doctorId: r.DoctorId,
-        type: r.Type,
-        status: r.Status
-      }));
-      console.log('Mapped requests:', this.requests);
-    },
-    err => console.error(err)
-  );
-}
+    this.requestService.getRequestsByPatient(this.patientId).subscribe(
+      res => {
+        this.requests = res.map((r: any) => ({
+          id: r.id,
+          medicalRecordId: r.medicalRecordId,
+          doctorId: r.doctorId,
+          type: r.type,
+          status: r.status
+        }));
+        console.log('Mapped requests:', this.requests);
+      },
+      err => console.error(err)
+    );
+  }
 
   loadDoctors() {
     this.requestService.getDoctors().subscribe(

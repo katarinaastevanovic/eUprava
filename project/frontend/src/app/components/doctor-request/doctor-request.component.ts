@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
-import { ExaminationRequestService, Request, Student } from '../../services/examination-request/examination-request.service';
+import { ExaminationRequestService, RequestWithStudent } from '../../services/examination-request/examination-request.service';
 
 @Component({
   selector: 'app-doctor-requests',
@@ -10,8 +10,7 @@ import { ExaminationRequestService, Request, Student } from '../../services/exam
   templateUrl: './doctor-request.component.html',
 })
 export class DoctorRequestsComponent implements OnInit {
-  requests: Request[] = [];
-  students: Student[] = [];
+  requests: RequestWithStudent[] = [];
   doctorId: number = 0;
 
   constructor(private requestService: ExaminationRequestService) {}
@@ -19,7 +18,6 @@ export class DoctorRequestsComponent implements OnInit {
   ngOnInit() {
     this.doctorId = this.getUserIdFromToken();
     if (this.doctorId) {
-      this.loadStudents(); 
       this.loadRequests(); 
     }
   }
@@ -33,39 +31,14 @@ export class DoctorRequestsComponent implements OnInit {
     return Number(decoded.sub) || 0;
   }
 
-  loadStudents() {
-  this.requestService.getAllStudents().subscribe(
-    res => {
-      this.students = res.map((s: any) => ({
-        id: s.ID,
-        firstName: s.Name,
-        lastName: s.LastName
-      }));
-      console.log('Mapped students:', this.students);
-    },
-    err => console.error('Failed to load students:', err)
-  );
-}
-
   loadRequests() {
     this.requestService.getRequestsByDoctor(this.doctorId).subscribe(
-      res => {
-        this.requests = res.map((r: any) => ({
-          id: r.ID,
-          medicalRecordId: r.MedicalRecordId,
-          doctorId: r.DoctorId,
-          type: r.Type,
-          status: r.Status
-        }));
-        console.log('Doctor requests:', this.requests);
+      (res: RequestWithStudent[]) => {
+        console.log('Requests with student names:', res);
+        this.requests = res;
       },
-      err => console.error(err)
+      err => console.error('Failed to load requests:', err)
     );
-  }
-
-  getStudentName(id: number): string {
-    const student = this.students.find(s => s.id === id);
-    return student ? `${student.firstName} ${student.lastName}` : `ID: ${id}`;
   }
 
   approveRequest(requestId: number) {

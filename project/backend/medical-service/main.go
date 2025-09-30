@@ -21,6 +21,7 @@ func main() {
 	studentRouter.HandleFunc("/medical-records", handlers.CreateMedicalRecord).Methods("POST")
 	studentRouter.HandleFunc("/requests", handlers.CreateRequest).Methods("POST")
 	studentRouter.HandleFunc("/requests/patient/{id}", handlers.GetRequestsByPatient).Methods("GET")
+	studentRouter.HandleFunc("/medical-records/{medicalRecordId}/examinations", handlers.GetExaminationsByMedicalRecord).Methods("GET")
 
 	stDocRouter := r.PathPrefix("/").Subrouter()
 	stDocRouter.Use(middleware.JWTAuth)
@@ -35,6 +36,18 @@ func main() {
 	doctorRouter.HandleFunc("/requests/doctor/{id}", handlers.GetRequestsByDoctor).Methods("GET")
 	doctorRouter.HandleFunc("/requests/{id}/approve", handlers.ApproveRequest).Methods("PATCH")
 	doctorRouter.HandleFunc("/requests/{id}/reject", handlers.RejectRequest).Methods("PATCH")
+	doctorRouter.HandleFunc("/requests/doctor/{id}/approved", handlers.GetApprovedRequestsByDoctor).Methods("GET")
+	doctorRouter.HandleFunc("/examinations", handlers.CreateExamination).Methods("POST")
+	doctorRouter.HandleFunc("/examinations/{requestId}", handlers.GetExaminationByRequest).Methods("GET")
+	doctorRouter.HandleFunc("/requests/{requestId}/medical-record-id", handlers.GetMedicalRecordIdByRequest).Methods("GET")
+	doctorRouter.HandleFunc("/requests/{requestId}", handlers.GetRequestById).Methods("GET")
+	doctorRouter.HandleFunc("/certificates", handlers.CreateMedicalCertificateHandler).Methods("POST")
+	doctorRouter.HandleFunc("/medical-records/{medicalRecordId}", handlers.GetFullMedicalRecordById).Methods("GET")
+
+	serviceRouter := r.PathPrefix("/").Subrouter()
+	serviceRouter.Use(middleware.JWTAuth)
+	serviceRouter.HandleFunc("/patients", handlers.CreatePatientHandler).Methods("POST")
+	serviceRouter.HandleFunc("/doctors", handlers.CreateDoctorHandler).Methods("POST")
 
 	handler := corsMiddleware(r)
 

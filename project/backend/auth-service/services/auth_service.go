@@ -181,7 +181,7 @@ func FindUserByID(id uint) (*models.Member, error) {
 	return &user, nil
 }
 
-func CreateUserFromFirebase(uid, email, username, name, lastName, umcn string) (*models.Member, error) {
+func CreateUserFromFirebase(uid *string, email, username, name, lastName, umcn string) (*models.Member, error) {
 	user := models.Member{
 		FirebaseUID: uid,
 		Email:       email,
@@ -219,4 +219,37 @@ func GetAllStudents() ([]models.Member, error) {
 		return nil, err
 	}
 	return students, nil
+}
+
+type MembersBatchRequest struct {
+	IDs []uint `json:"ids"`
+}
+
+type MemberResponse struct {
+	ID       uint   `json:"id"`
+	Name     string `json:"name"`
+	LastName string `json:"last_name"`
+	Email    string `json:"email"`
+}
+
+func GetMembersByIDs(ids []uint) ([]MemberResponse, error) {
+	var members []models.Member
+	if err := database.DB.Select("id, name, last_name, email").
+		Where("id IN ?", ids).
+		Find(&members).Error; err != nil {
+		return nil, err
+	}
+
+	result := make([]MemberResponse, len(members))
+	for i, m := range members {
+		result[i] = MemberResponse{
+			ID:       m.ID,
+			Name:     m.Name,
+			LastName: m.LastName,
+			Email:    m.Email,
+		}
+	}
+
+	return result, nil
+
 }

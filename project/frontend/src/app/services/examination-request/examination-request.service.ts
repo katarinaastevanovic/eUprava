@@ -7,7 +7,18 @@ export interface Request {
   medicalRecordId: number;
   doctorId: number;
   type: 'REGULAR' | 'SPECIALIST' | 'URGENT';
-  status?: 'REQUESTED' | 'APPROVED' | 'REJECTED';
+  status?: 'REQUESTED' | 'APPROVED' | 'REJECTED' | 'FINISHED';
+  needMedicalCertificate?: boolean;
+}
+
+export interface RequestWithStudent {
+  id?: number;
+  medicalRecordId: number;
+  doctorId: number;
+  type: 'REGULAR' | 'SPECIALIST' | 'URGENT';
+  status?: 'REQUESTED' | 'APPROVED' | 'REJECTED' | 'FINISHED';
+  studentName: string;
+  needMedicalCertificate?: boolean;
 }
 
 export interface Doctor {
@@ -54,11 +65,11 @@ export class ExaminationRequestService {
     );
   }
 
-  getRequestsByDoctor(doctorId: number): Observable<Request[]> {
-    return this.http.get<Request[]>(
-      `${this.apiGatewayUrl}/medical/requests/doctor/${doctorId}`,
-      this.getAuthHeaders()
-    );
+  getRequestsByDoctor(doctorId: number): Observable<RequestWithStudent[]> {
+  return this.http.get<RequestWithStudent[]>(
+    `${this.apiGatewayUrl}/medical/requests/doctor/${doctorId}`,
+    this.getAuthHeaders()
+  );
   }
 
   approveRequest(requestId: number): Observable<void> {
@@ -90,4 +101,12 @@ export class ExaminationRequestService {
       this.getAuthHeaders()
     );
   }
+
+  getApprovedRequestsByDoctor(doctorId: number): Observable<RequestWithStudent[]> {
+  return this.http.get<RequestWithStudent[]>(
+    `${this.apiGatewayUrl}/medical/requests/doctor/${doctorId}/approved`,
+    this.getAuthHeaders()
+  );
+  }
+
 }

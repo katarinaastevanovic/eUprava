@@ -21,6 +21,8 @@ func Connect() {
 	}
 
 	err = DB.AutoMigrate(
+		&models.Doctor{},
+		&models.Patient{},
 		&models.MedicalRecord{},
 		&models.Request{},
 		&models.Examination{},

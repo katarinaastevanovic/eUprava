@@ -18,9 +18,9 @@ type AuthUser struct {
 	Gender    string `json:"gender"`
 }
 
-func CreateMedicalRecord(userID uint) (*models.MedicalRecord, error) {
+func CreateMedicalRecord(patientID uint) (*models.MedicalRecord, error) {
 	record := models.MedicalRecord{
-		PatientId:       userID,
+		PatientId:       patientID,
 		Allergies:       "",
 		ChronicDiseases: "",
 		LastUpdate:      time.Now().Format("2006-01-02"),
@@ -77,4 +77,56 @@ func GetPatientFromAuth(userID uint) (*AuthUser, error) {
 	}
 
 	return &user, nil
+}
+
+func GetPatientByUserID(userID uint) (*models.Patient, error) {
+	var patient models.Patient
+	if err := database.DB.Where("user_id = ?", userID).First(&patient).Error; err != nil {
+		return nil, err
+	}
+	return &patient, nil
+}
+
+func GetMedicalRecordByPatientID(patientID uint) (*models.MedicalRecord, error) {
+	var record models.MedicalRecord
+
+	if err := database.DB.
+		Preload("Examinations").
+		Preload("Requests").
+		Where("patient_id = ?", patientID).
+		First(&record).Error; err != nil {
+		return nil, err
+	}
+
+	return &record, nil
+}
+
+func GetMedicalRecordIdByRequest(requestId uint) (uint, error) {
+	var request models.Request
+	err := database.DB.First(&request, requestId).Error
+	if err != nil {
+		return 0, err
+	}
+	return request.MedicalRecordId, nil
+}
+
+func GetMedicalRecordByID(recordID uint) (*models.MedicalRecord, error) {
+	var record models.MedicalRecord
+
+	if err := database.DB.
+		Preload("Examinations").
+		Preload("Requests").
+		First(&record, recordID).Error; err != nil {
+		return nil, err
+	}
+
+	return &record, nil
+}
+
+func GetPatientByID(patientID uint) (*models.Patient, error) {
+	var patient models.Patient
+	if err := database.DB.First(&patient, patientID).Error; err != nil {
+		return nil, err
+	}
+	return &patient, nil
 }

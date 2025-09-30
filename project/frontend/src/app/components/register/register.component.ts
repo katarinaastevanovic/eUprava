@@ -55,7 +55,7 @@ export class RegisterComponent {
 
   onSubmit() {
   if (this.registerForm.valid) {
-    this.http.post('http://localhost:8080/register', this.registerForm.value, { responseType: 'text' })
+    this.http.post('http://localhost:8080/api/auth/register', this.registerForm.value, { responseType: 'text' })
       .subscribe({
         next: (res) => {
           console.log('✅ Registracija uspela:', res);

@@ -10,5 +10,6 @@ export const environment = {
     measurementId: "G-2TSRKSZBGM",
     webClientId: "527368880840-0fl8tugsobrej0m1c3qgu0hqjiotmm7q.apps.googleusercontent.com"
   },
-  apiBaseUrl: "http://localhost:8080"
+  apiBaseUrl: "http://localhost:8080/api/auth",
+  schoolApiBaseUrl: "http://localhost:8080/api/school"
 };

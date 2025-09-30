@@ -54,3 +54,57 @@ body {
 .shadow-none {
   box-shadow: none !important;
 }
+
+.absences-scroll {
+  max-height: 300px;        /* ili npr. 300px */
+  overflow-y: auto;
+  padding-right: 8px;
+  scrollbar-width: thin;
+}
+
+.absences-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.absences-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.absences-scroll {
+  max-height: 50vh;
+}
+
+.absence-list {
+  max-height: none;
+  overflow: visible;
+}
+
+.absence-list.absences-scroll {
+  max-height: 400px; /* visina u kojoj može stati ~3 kartice */
+  overflow-y: auto;
+  padding-right: 8px;
+  scrollbar-width: thin;
+}
+
+.absence-list.absences-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.absence-list.absences-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.absence-list {
+  max-height: none;
+  overflow-y: visible;
+}
+
+.absences-scroll {
+  max-height: 300px; /* prilagodi visinu */
+  overflow-y: auto;
+}
+
+
+

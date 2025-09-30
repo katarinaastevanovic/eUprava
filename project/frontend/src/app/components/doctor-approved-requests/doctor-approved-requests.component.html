@@ -1,0 +1,36 @@
+<div class="flex flex-col items-center justify-center min-h-screen">
+  <div class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-6xl">
+    <h3 class="text-3xl font-bold text-teal-700 mb-8 text-center">Approved Patient Requests</h3>
+
+    <div class="overflow-x-auto">
+      <table class="min-w-full border-collapse border border-teal-200">
+        <thead class="bg-teal-700 text-white text-left">
+          <tr>
+            <th class="px-6 py-3 border-b border-teal-200">Patient</th>
+            <th class="px-6 py-3 border-b border-teal-200">Type</th>
+            <th class="px-6 py-3 border-b border-teal-200">Status</th>
+            <th class="px-6 py-3 border-b border-teal-200">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="text-gray-700">
+          <tr *ngFor="let req of approvedRequests" class="hover:bg-teal-100 transition-colors">
+            <td class="px-6 py-4 border-b border-teal-200">{{ req.studentName }}</td>
+            <td class="px-6 py-4 border-b border-teal-200">{{ req.type }}</td>
+            <td class="px-6 py-4 border-b border-teal-200">
+              <span class="px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-800">
+                Approved
+              </span>
+            </td>
+            <td class="px-6 py-4 border-b border-teal-200">
+              <button class="bg-teal-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-teal-600 transition"
+                (click)="reviewRequest(req.id!)">
+                Examination
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>

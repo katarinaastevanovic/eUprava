@@ -1,81 +1,99 @@
-<div class="flex flex-col items-center justify-center min-h-screen">
-  <div class="bg-white p-6 rounded-2xl shadow-md w-96 text-center">
-    <h2 class="text-xl font-bold mb-4">Medical Record</h2>
+<div class="flex flex-col items-center justify-center min-h-screen p-6">
+  <div class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-6xl">
 
-    <div *ngIf="record; else noRecord">
-      <div class="mb-4 text-left">
-        <p><strong>Name:</strong> {{ record?.name }} 
-        <p><strong>Lastname:</strong> {{ record?.lastName }}</p>
-        <p><strong>JMBG:</strong> {{ record?.jmbg }}</p>
-        <p><strong>Birth Date:</strong> {{ record?.birthDate | date:'dd.MM.yyyy.' }}</p>
-        <p><strong>Gender:</strong> {{ record?.gender }}</p>
+    <h2 class="text-3xl font-bold text-teal-700 mb-8 text-center">Medical Record</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      
+      <div>
+        <div *ngIf="record; else noRecord">
+          <div class="mb-6 border-b pb-4">
+            <h3 class="text-xl font-semibold text-gray-800 mb-3">Patient Info</h3>
+            <div class="grid grid-cols-2 gap-x-6 gap-y-2 text-gray-700">
+              <p><strong>Name:</strong> {{ record.name }}</p>
+              <p><strong>Lastname:</strong> {{ record.lastName }}</p>
+              <p><strong>JMBG:</strong> {{ record.jmbg }}</p>
+              <p><strong>Birth Date:</strong> {{ record.birthDate | date:'dd.MM.yyyy.' }}</p>
+              <p><strong>Gender:</strong> {{ record.gender }}</p>
+            </div>
+          </div>
+
+          <form (ngSubmit)="updateRecord()" class="flex flex-col space-y-4 mb-6">
+            <h3 class="text-xl font-semibold text-gray-800">Medical Details</h3>
+
+            <div>
+              <label class="block font-semibold mb-1">Allergies</label>
+              <input
+                [(ngModel)]="allergies"
+                name="allergies"
+                type="text"
+                placeholder="e.g. Penicillin"
+                class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-teal-500"
+              />
+            </div>
+
+            <div>
+              <label class="block font-semibold mb-1">Chronic Diseases</label>
+              <input
+                [(ngModel)]="chronicDiseases"
+                name="chronicDiseases"
+                type="text"
+                placeholder="e.g. Diabetes"
+                class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-teal-500"
+              />
+            </div>
+
+            <p class="text-gray-500 text-sm">Last update: {{ record.lastUpdate }}</p>
+
+            <button
+              type="submit"
+              [disabled]="loading"
+              class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition disabled:bg-gray-400"
+            >
+              {{ loading ? "Saving..." : "Update Record" }}
+            </button>
+          </form>
+        </div>
+
+        <ng-template #noRecord>
+          <p class="mb-6 text-gray-600">You don’t have a medical record yet.</p>
+          <button
+            (click)="createRecord()"
+            [disabled]="loading"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition disabled:bg-gray-400"
+          >
+            {{ loading ? "Creating..." : "Create Medical Record" }}
+          </button>
+        </ng-template>
       </div>
 
-      <form (ngSubmit)="updateRecord()" class="flex flex-col space-y-3 text-left">
-        <label class="font-semibold">Allergies</label>
-        <input
-          [(ngModel)]="allergies"
-          name="allergies"
-          type="text"
-          placeholder="Allergies"
-          class="border rounded-lg px-3 py-2"
-        />
-
-        <label class="font-semibold">Chronic Diseases</label>
-        <input
-          [(ngModel)]="chronicDiseases"
-          name="chronicDiseases"
-          type="text"
-          placeholder="Chronic Diseases"
-          class="border rounded-lg px-3 py-2"
-        />
-
-        <p class="text-gray-500 text-sm">Last update: {{ record?.lastUpdate }}</p>
-
-        <button
-          type="submit"
-          [disabled]="loading"
-          class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg transition disabled:bg-gray-400"
-        >
-          {{ loading ? "Saving..." : "Update" }}
-        </button>
-      </form>
-
-      <div class="mt-4 text-left">
-        <h3 class="font-bold mb-2">Examinations</h3>
-        <div *ngIf="record?.examinations?.length; else noExams">
-          <ul class="list-disc ml-5">
-            <li *ngFor="let exam of record.examinations">{{ exam | json }}</li>
-          </ul>
+      <div class="max-h-[500px] overflow-y-auto pr-2">
+        <h3 class="text-xl font-semibold text-gray-800 mb-4">Examinations</h3>
+        <div *ngIf="record?.examinations?.length; else noExams" class="space-y-4">
+          <div
+            *ngFor="let exam of record?.examinations"
+            class="border p-4 rounded-xl bg-gray-50 shadow-sm"
+          >
+            <p><strong>Date:</strong> {{ exam.CreatedAt | date:'dd.MM.yyyy HH:mm' }}</p>
+            <p><strong>Diagnosis:</strong> {{ exam.Diagnosis }}</p>
+            <p><strong>Therapy:</strong> {{ exam.Therapy }}</p>
+            <p *ngIf="exam.Note"><strong>Note:</strong> {{ exam.Note }}</p>
+          </div>
         </div>
         <ng-template #noExams>
           <p class="text-gray-500 text-sm">No examinations yet.</p>
         </ng-template>
-
-        <h3 class="font-bold mt-4 mb-2">Requests</h3>
-        <div *ngIf="record?.requests?.length; else noRequests">
-          <ul class="list-disc ml-5">
-            <li *ngFor="let req of record.requests">{{ req | json }}</li>
-          </ul>
-        </div>
-        <ng-template #noRequests>
-          <p class="text-gray-500 text-sm">No requests yet.</p>
-        </ng-template>
       </div>
     </div>
 
-    <ng-template #noRecord>
-      <p class="mb-4 text-gray-600">You don’t have a medical record yet.</p>
-      <button
-        (click)="createRecord()"
-        [disabled]="loading"
-        class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition disabled:bg-gray-400"
-      >
-        {{ loading ? "Creating..." : "Create Record" }}
-      </button>
-    </ng-template>
+    <button
+      [routerLink]="['/requests']"
+      class="mt-8 w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2 px-4 rounded-lg transition"
+    >
+      View All Requests
+    </button>
 
-    <p *ngIf="error" class="text-red-500 text-sm mt-3">{{ error }}</p>
-    <p *ngIf="success" class="text-green-500 text-sm mt-3">{{ success }}</p>
+    <p *ngIf="error" class="text-red-500 text-sm mt-3 text-center">{{ error }}</p>
+    <p *ngIf="success" class="text-green-500 text-sm mt-3 text-center">{{ success }}</p>
   </div>
 </div>

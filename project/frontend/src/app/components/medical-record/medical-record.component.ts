@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MedicalRecordService } from '../../services/medical-record/medical-record.service';
 import { FullMedicalRecord } from '../../models/medical-models/full-medical-record.model';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-medical-record',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './medical-record.component.html'
 })
 export class MedicalRecordComponent implements OnInit {
