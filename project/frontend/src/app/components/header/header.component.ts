@@ -2,7 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../../services/auth/auth.service';
-import { StudentNotificationService, StudentNotification } from '../../services/student-notification/student-notification.service';
+import { StudentNotificationService } from '../../services/student-notification/student-notification.service';
+import { DoctorNotificationService } from '../../services/doctor-notification/doctor-notification.service';
+import { Notification } from '../../models/notification.model';
 
 @Component({
   selector: 'app-header',
@@ -12,11 +14,18 @@ import { StudentNotificationService, StudentNotification } from '../../services/
 })
 export class HeaderComponent implements OnInit {
   showNotificationsSidebar = false;
-  notifications: StudentNotification[] = [];
-  studentId: number;
+  notifications: Notification[] = []; 
+  userId: number;
+  role: 'STUDENT' | 'DOCTOR' | null = null;
 
-  constructor(private authService: AuthService, public router: Router, private notificationService: StudentNotificationService) {
-    this.studentId = this.getUserIdFromToken();
+  constructor(
+    private authService: AuthService, 
+    public router: Router, 
+    private studentNotificationService: StudentNotificationService,
+    private doctorNotificationService: DoctorNotificationService
+  ) {
+    this.userId = this.getUserIdFromToken();
+    this.role = this.getRoleFromToken();
   }
 
   ngOnInit(): void {
@@ -25,9 +34,7 @@ export class HeaderComponent implements OnInit {
 
   logout() {
     this.authService.logout().then(() => {
-      this.router.navigate(['']).then(() => {
-        window.location.reload();
-      });
+      this.router.navigate(['']).then(() => window.location.reload());
     });
   }
 
@@ -42,16 +49,47 @@ export class HeaderComponent implements OnInit {
     return payload.sub;
   }
 
+  getRoleFromToken(): 'STUDENT' | 'DOCTOR' | null {
+    const token = localStorage.getItem('jwt');
+    if (!token) return null;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.role;
+    } catch (err) {
+      console.error('Failed to decode token', err);
+      return null;
+    }
+  }
+
   loadNotifications() {
-    this.notificationService.getNotifications(this.studentId).subscribe(
+  if (!this.role) return;
+
+  console.log('Loading notifications for userId:', this.userId, 'role:', this.role);
+
+  if (this.role === 'STUDENT') {
+    this.studentNotificationService.getNotifications(this.userId).subscribe(
       res => {
-        this.notifications = res.sort((a, b) => {
-          if (a.read === b.read) return 0;
-          return a.read ? 1 : -1;
-        });
+        console.log('Student notifications received:', res);
+        this.notifications = this.sortNotifications(res);
       },
-      err => console.error(err)
+      err => console.error('Error loading student notifications:', err)
     );
+  } else if (this.role === 'DOCTOR') {
+    this.doctorNotificationService.getNotifications(this.userId).subscribe(
+      res => {
+        console.log('Doctor notifications received:', res);
+        this.notifications = this.sortNotifications(res);
+      },
+      err => console.error('Error loading doctor notifications:', err)
+    );
+  }
+}
+
+  private sortNotifications(notifs: Notification[]): Notification[] {
+    return notifs.sort((a, b) => {
+      if (a.read === b.read) return 0;
+      return a.read ? 1 : -1;
+    });
   }
 
   get unreadCount(): number {
@@ -66,38 +104,21 @@ export class HeaderComponent implements OnInit {
     this.showNotificationsSidebar = false;
   }
 
-  markAsRead(notif: StudentNotification) {
-    if (!notif.read && notif.ID !== undefined) {
-      this.notificationService.markAsRead(this.studentId, notif.ID).subscribe(() => {
-        notif.read = true;
-      });
+  markAsRead(notif: Notification) {
+    if (!notif.read && notif.id !== undefined) {
+      if (this.role === 'STUDENT') {
+        this.studentNotificationService.markAsRead(this.userId, notif.id).subscribe(() => notif.read = true);
+      } else if (this.role === 'DOCTOR') {
+        this.doctorNotificationService.markAsRead(this.userId, notif.id).subscribe(() => notif.read = true);
+      }
     }
   }
 
   isStudent(): boolean {
-  const token = localStorage.getItem('jwt');
-  if (!token) return false;
-
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    return payload.role === 'STUDENT';
-  } catch (err) {
-    console.error('Failed to decode token', err);
-    return false;
+    return this.role === 'STUDENT';
   }
-}
 
-isDoctor(): boolean {
-  const token = localStorage.getItem('jwt');
-  if (!token) return false;
-
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    return payload.role === 'DOCTOR';
-  } catch (err) {
-    console.error('Failed to decode token', err);
-    return false;
+  isDoctor(): boolean {
+    return this.role === 'DOCTOR';
   }
-}
-
 }

@@ -11,7 +11,29 @@ import (
 
 func CreateRequest(req *models.Request) error {
 	req.Status = models.REQUESTED
-	return database.DB.Create(req).Error
+	if err := database.DB.Create(req).Error; err != nil {
+		return err
+	}
+
+	var record models.MedicalRecord
+	if err := database.DB.First(&record, req.MedicalRecordId).Error; err != nil {
+		fmt.Println("Failed to get medical record:", err)
+	}
+
+	var patient models.Patient
+	if err := database.DB.First(&patient, record.PatientId).Error; err != nil {
+		fmt.Println("Failed to get patient:", err)
+	}
+
+	studentName := getStudentNameFromAuth(patient.UserId)
+
+	message := fmt.Sprintf("You have a new examination request from %s. Type: %s.", studentName, req.Type)
+
+	if err := CreateNotification(req.DoctorId, message); err != nil {
+		fmt.Println("Failed to create notification:", err)
+	}
+
+	return nil
 }
 
 func GetRequestsByPatientUser(userId uint) ([]models.Request, error) {
