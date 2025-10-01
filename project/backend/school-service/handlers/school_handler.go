@@ -292,3 +292,164 @@ func (h *SchoolHandler) GetStudentFullProfile(w http.ResponseWriter, r *http.Req
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(dto)
 }
+
+type GradeItem struct {
+	Value int       `json:"value"`
+	Date  time.Time `json:"date,omitempty"`
+}
+
+type GradesResponse struct {
+	StudentID   uint        `json:"student_id"`
+	SubjectID   uint        `json:"subject_id"`
+	TeacherID   uint        `json:"teacher_id"`
+	SubjectName string      `json:"subject_name"`
+	Grades      []GradeItem `json:"grades"`
+}
+
+func (h *SchoolHandler) GetGradesByStudentSubjectAndTeacherHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	studentID, err := strconv.Atoi(vars["studentID"])
+	if err != nil {
+		http.Error(w, "Invalid student ID", http.StatusBadRequest)
+		return
+	}
+
+	subjectID, err := strconv.Atoi(vars["subjectID"])
+	if err != nil {
+		http.Error(w, "Invalid subject ID", http.StatusBadRequest)
+		return
+	}
+
+	teacherID, err := strconv.Atoi(vars["teacherID"])
+	if err != nil {
+		http.Error(w, "Invalid teacher ID", http.StatusBadRequest)
+		return
+	}
+
+	grades, err := h.Service.GetGradesByStudentSubjectAndTeacher(uint(studentID), uint(subjectID), uint(teacherID))
+	if err != nil {
+		http.Error(w, "Failed to fetch grades", http.StatusInternalServerError)
+		return
+	}
+
+	var gradeItems []GradeItem
+	for _, g := range grades {
+		gradeItems = append(gradeItems, GradeItem{
+			Value: g.Value,
+			Date:  g.Date,
+		})
+	}
+
+	subjectName := ""
+	if len(grades) > 0 {
+		subjectName = grades[0].Subject.Name
+	}
+
+	response := GradesResponse{
+		StudentID:   uint(studentID),
+		SubjectID:   uint(subjectID),
+		TeacherID:   uint(teacherID),
+		SubjectName: subjectName,
+		Grades:      gradeItems,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
+type StudentGradeResponse struct {
+	SubjectID   uint      `json:"subject_id"`
+	SubjectName string    `json:"subject_name"`
+	Value       int       `json:"value"`
+	Date        time.Time `json:"date,omitempty"`
+}
+
+func (h *SchoolHandler) GetAllGradesByStudentHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	studentID, err := strconv.Atoi(vars["studentID"])
+	if err != nil {
+		http.Error(w, "Invalid student ID", http.StatusBadRequest)
+		return
+	}
+
+	grades, err := h.Service.GetAllGradesByStudent(uint(studentID))
+	if err != nil {
+		http.Error(w, "Failed to fetch grades", http.StatusInternalServerError)
+		return
+	}
+
+	var response []StudentGradeResponse
+	for _, g := range grades {
+		response = append(response, StudentGradeResponse{
+			SubjectID:   g.SubjectID,
+			SubjectName: g.Subject.Name,
+			Value:       g.Value,
+			Date:        g.Date,
+		})
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
+func (h *SchoolHandler) GetAverageByTeacherAndSubjectHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	studentID, _ := strconv.Atoi(vars["studentID"])
+	subjectID, _ := strconv.Atoi(vars["subjectID"])
+	teacherID, _ := strconv.Atoi(vars["teacherID"])
+
+	avg, err := h.Service.GetAverageGradeByTeacherAndSubject(uint(studentID), uint(subjectID), uint(teacherID))
+	if err != nil {
+		http.Error(w, "Failed to fetch average", http.StatusInternalServerError)
+		return
+	}
+
+	resp := map[string]interface{}{
+		"student_id": studentID,
+		"subject_id": subjectID,
+		"teacher_id": teacherID,
+		"average":    avg,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(resp)
+}
+
+func (h *SchoolHandler) GetAverageByStudentHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	studentID, _ := strconv.Atoi(vars["studentID"])
+
+	avg, err := h.Service.GetAverageGradeByStudent(uint(studentID))
+	if err != nil {
+		http.Error(w, "Failed to fetch average", http.StatusInternalServerError)
+		return
+	}
+
+	resp := map[string]interface{}{
+		"student_id": studentID,
+		"average":    avg,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(resp)
+}
+
+func (h *SchoolHandler) GetAverageByStudentPerSubjectHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	studentID, _ := strconv.Atoi(vars["studentID"])
+
+	averages, err := h.Service.GetAverageGradeByStudentPerSubject(uint(studentID))
+	if err != nil {
+		http.Error(w, "Failed to fetch averages", http.StatusInternalServerError)
+		return
+	}
+
+	resp := map[string]interface{}{
+		"student_id": studentID,
+		"subjects":   averages,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(resp)
+}

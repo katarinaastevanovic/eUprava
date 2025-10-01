@@ -42,6 +42,16 @@ interface StudentDTO {
   numberOfAbsences: number;
   absences: AbsenceDTO[];
 }
+export interface GradeDTO {
+  subject_name: string;
+  value: number;
+  date: string;
+}
+export interface SubjectAverage {
+  subject_id: number;
+  subject_name: string;
+  average: number;
+}
 
 
 @Injectable({ providedIn: 'root' })
@@ -108,5 +118,18 @@ createAbsences(studentIds: number[], subjectId: number, date?: string) {
 getUserById(id: number) {
   return this.http.get<User>(`${environment.schoolApiBaseUrl}/students/by-user/${id}/profile`);
 }
+
+getStudentGrades(studentId: number): Observable<GradeDTO[]> {
+  return this.http.get<GradeDTO[]>(
+    `${environment.schoolApiBaseUrl}/api/grades/student/${studentId}`
+  );
+}
+
+getStudentAveragesPerSubject(studentId: number): Observable<{ student_id: number; subjects: SubjectAverage[] }> {
+  return this.http.get<{ student_id: number; subjects: SubjectAverage[] }>(
+    `${environment.schoolApiBaseUrl}/students/${studentId}/averages-per-subject`
+  );
+}
+
 
 }

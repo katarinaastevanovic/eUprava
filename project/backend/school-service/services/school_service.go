@@ -182,11 +182,6 @@ func fetchMembersByIDs(ids []uint) (map[uint]MemberResponse, error) {
 
 	endpoint := fmt.Sprintf("%s/api/members/batch", authURL)
 
-	// 🐛 DEBUG printovi
-	fmt.Println("👉 AUTH_SERVICE_URL =", authURL)
-	fmt.Println("👉 Endpoint =", endpoint)
-	fmt.Println("👉 Request body =", string(body))
-
 	resp, err := http.Post(endpoint, "application/json", bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
@@ -195,9 +190,7 @@ func fetchMembersByIDs(ids []uint) (map[uint]MemberResponse, error) {
 
 	fmt.Println("👉 Status code =", resp.StatusCode)
 
-	// Pročitamo i telo odgovora za debug
 	respBody, _ := io.ReadAll(resp.Body)
-	fmt.Println("👉 Response body =", string(respBody))
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("auth-service returned status %d", resp.StatusCode)
@@ -258,7 +251,6 @@ func (s *SchoolService) GetFullStudentProfileByUserID(userID uint) (*FullStudent
 		return nil, err
 	}
 
-	// 1. pripremi JSON telo sa ID-jem
 	bodyData, err := json.Marshal(map[string][]uint{
 		"ids": {userID},
 	})
@@ -266,7 +258,6 @@ func (s *SchoolService) GetFullStudentProfileByUserID(userID uint) (*FullStudent
 		return nil, err
 	}
 
-	// 2. napravi POST zahtev ka batch ruti
 	authURL := "http://auth-service:8081/api/members/batch"
 	resp, err := http.Post(authURL, "application/json", bytes.NewBuffer(bodyData))
 	if err != nil {
@@ -294,7 +285,6 @@ func (s *SchoolService) GetFullStudentProfileByUserID(userID uint) (*FullStudent
 
 	member := members[0]
 
-	// 4. sastavi DTO
 	dto := &FullStudentProfileDTO{
 		ID:               student.ID,
 		UserID:           student.UserID,
@@ -305,4 +295,70 @@ func (s *SchoolService) GetFullStudentProfileByUserID(userID uint) (*FullStudent
 		ClassID:          student.ClassID,
 	}
 	return dto, nil
+}
+
+func (s *SchoolService) GetGradesByStudentSubjectAndTeacher(studentID, subjectID, teacherID uint) ([]models.Grade, error) {
+	var grades []models.Grade
+	if err := s.DB.
+		Preload("Subject").
+		Where("student_id = ? AND subject_id = ? AND teacher_id = ?", studentID, subjectID, teacherID).
+		Find(&grades).Error; err != nil {
+		return nil, err
+	}
+	return grades, nil
+}
+
+func (s *SchoolService) GetAllGradesByStudent(studentID uint) ([]models.Grade, error) {
+	var grades []models.Grade
+	if err := s.DB.
+		Preload("Subject").
+		Where("student_id = ?", studentID).
+		Find(&grades).Error; err != nil {
+		return nil, err
+	}
+	return grades, nil
+}
+
+func (s *SchoolService) GetAverageGradeByTeacherAndSubject(studentID, subjectID, teacherID uint) (float64, error) {
+	var avg float64
+	err := s.DB.Model(&models.Grade{}).
+		Select("AVG(value)").
+		Where("student_id = ? AND subject_id = ? AND teacher_id = ?", studentID, subjectID, teacherID).
+		Scan(&avg).Error
+	if err != nil {
+		return 0, err
+	}
+	return avg, nil
+}
+
+func (s *SchoolService) GetAverageGradeByStudent(studentID uint) (float64, error) {
+	var avg float64
+	err := s.DB.Model(&models.Grade{}).
+		Select("AVG(value)").
+		Where("student_id = ?", studentID).
+		Scan(&avg).Error
+	if err != nil {
+		return 0, err
+	}
+	return avg, nil
+}
+
+type SubjectAverage struct {
+	SubjectID   uint    `json:"subject_id"`
+	SubjectName string  `json:"subject_name"`
+	Average     float64 `json:"average"`
+}
+
+func (s *SchoolService) GetAverageGradeByStudentPerSubject(studentID uint) ([]SubjectAverage, error) {
+	var results []SubjectAverage
+	err := s.DB.Table("grades").
+		Select("subject_id, subjects.name as subject_name, AVG(value) as average").
+		Joins("JOIN subjects ON subjects.id = grades.subject_id").
+		Where("grades.student_id = ?", studentID).
+		Group("subject_id, subjects.name").
+		Scan(&results).Error
+	if err != nil {
+		return nil, err
+	}
+	return results, nil
 }

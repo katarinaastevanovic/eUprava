@@ -1,6 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { UserService, User, Absence, ClassDTO  } from '../../services/user/user.service';
+import { UserService, User, Absence, ClassDTO, GradeDTO, SubjectAverage } from '../../services/user/user.service';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
@@ -18,6 +18,10 @@ export class UserProfileComponent implements OnInit {
 
   user: User | null = null;
   absences: Absence[] = [];
+  grades: GradeDTO[] | null = null;
+  subjectAverages: SubjectAverage[] = [];
+  showAverages = false;
+  studentId: number | null = null;
   teacherClasses: ClassDTO[] = [];
   teacherSubject: string = '';
   loading = false;
@@ -35,10 +39,25 @@ export class UserProfileComponent implements OnInit {
       this.loading = false;
 
       if (data?.role?.toUpperCase() === 'STUDENT' && data?.id) {
-      this.loadAbsences(data.id); 
-    }
-     if (data?.role?.toUpperCase() === 'TEACHER' && data?.id) {
-        this.loadTeacherClasses(data.id);  
+        // ⬇️ absences i dalje koriste userId
+        this.loadAbsences(data.id);
+
+        // ⬇️ samo za ocene radimo mapiranje userId → studentId
+        this.userService.getStudentByUserId(data.id).subscribe({
+          next: (studentDto) => {
+            this.studentId = studentDto.id;
+            console.log("Mapiran userId", data.id, "na studentId", this.studentId);
+            this.loadGrades(this.studentId);
+          },
+          error: (err) => {
+            console.error("Greška pri mapiranju userId na studentId", err);
+            this.error = 'Failed to map user to student';
+          }
+        });
+      }
+
+      if (data?.role?.toUpperCase() === 'TEACHER' && data?.id) {
+        this.loadTeacherClasses(data.id);
       }
     },
     error: (err) => {
@@ -48,20 +67,21 @@ export class UserProfileComponent implements OnInit {
   });
 }
 
-loadTeacherClasses(teacherId: number) {
-  console.log('TeacherId za razrede:', teacherId);
-  this.userService.getTeacherClasses(teacherId).subscribe({
-    next: (response) => {
-      console.log('Dobijen odgovor:', response);
-      this.teacherSubject = response.subject_name;
-      this.teacherClasses = response.classes;
-    },
-    error: (err) => {
-      console.error('Greška pri dohvatanju razreda', err);
-      this.error = 'Failed to load classes';
-    }
-  });
-}
+
+  loadTeacherClasses(teacherId: number) {
+    console.log('TeacherId za razrede:', teacherId);
+    this.userService.getTeacherClasses(teacherId).subscribe({
+      next: (response) => {
+        console.log('Dobijen odgovor:', response);
+        this.teacherSubject = response.subject_name;
+        this.teacherClasses = response.classes;
+      },
+      error: (err) => {
+        console.error('Greška pri dohvatanju razreda', err);
+        this.error = 'Failed to load classes';
+      }
+    });
+  }
 
 
 
@@ -77,17 +97,48 @@ loadTeacherClasses(teacherId: number) {
     });
   }
 
-  onAbsenceTypeChange(absence: Absence) {
-  this.userService.updateAbsenceType(absence.id, absence.type).subscribe({
-    next: () => {
-      console.log(`Absence ${absence.id} updated to ${absence.type}`);
+  loadGrades(studentId: number) {
+    this.userService.getStudentGrades(studentId).subscribe({
+      next: (grades: GradeDTO[]) => {  // 👈 dodaj tip
+        this.grades = grades;
+        console.log("Ocene:", grades);
+      },
+      error: (err: any) => {           // 👈 dodaj tip
+        console.error('Greška pri dohvatanju ocena', err);
+        this.error = 'Failed to load grades';
+      }
+    });
+  }
+
+  loadSubjectAverages(studentId: number) {
+  this.showAverages = false;
+  this.subjectAverages = [];
+  this.userService.getStudentAveragesPerSubject(studentId).subscribe({
+    next: (res) => {
+      this.subjectAverages = res.subjects;
+      this.showAverages = true; 
+      console.log("Proseci po predmetima:", res.subjects);
     },
     error: (err) => {
-      console.error('Failed to update absence type', err);
-      this.error = 'Failed to update absence type';
+      console.error('Greška pri dohvatanju proseka', err);
+      this.error = 'Failed to load averages';
     }
   });
 }
+
+
+
+  onAbsenceTypeChange(absence: Absence) {
+    this.userService.updateAbsenceType(absence.id, absence.type).subscribe({
+      next: () => {
+        console.log(`Absence ${absence.id} updated to ${absence.type}`);
+      },
+      error: (err) => {
+        console.error('Failed to update absence type', err);
+        this.error = 'Failed to update absence type';
+      }
+    });
+  }
 
 }
 
