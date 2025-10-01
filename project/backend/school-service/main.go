@@ -40,6 +40,9 @@ func main() {
 	router.HandleFunc("/students/by-user/{userId}", schoolHandler.GetStudentByUserID).Methods("GET")
 	router.HandleFunc("/students/by-user/{userId}/profile", schoolHandler.GetStudentFullProfile).Methods("GET")
 	router.HandleFunc("/requests", handlers.CreateRequest).Methods("POST")
+	router.HandleFunc("/notifications", handlers.ReceiveNotification).Methods("POST")
+	router.HandleFunc("/notifications/{studentID}", handlers.GetNotificationsForStudent).Methods("GET")
+	router.HandleFunc("/users/{userID}/notifications/{notifID}/read", handlers.MarkNotificationReadHandler).Methods("PUT")
 
 	handler := corsMiddleware(router)
 
