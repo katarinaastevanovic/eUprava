@@ -178,10 +178,19 @@ func GetApprovedRequestsByDoctor(w http.ResponseWriter, r *http.Request) {
 	}
 
 	search := r.URL.Query().Get("search")
+	reqType := r.URL.Query().Get("type")
 
 	const pageSize = 5
 
-	requests, totalPages, err := services.GetRequestsByDoctorWithStudentPaginated(uint(doctorId), page, pageSize, models.APPROVED, search)
+	requests, totalPages, err := services.GetRequestsByDoctorWithStudentPaginatedCustomFilters(
+		uint(doctorId),
+		page,
+		pageSize,
+		string(models.APPROVED),
+		search,
+		reqType,
+		false,
+	)
 	if err != nil {
 		http.Error(w, "Failed to fetch approved requests", http.StatusInternalServerError)
 		return

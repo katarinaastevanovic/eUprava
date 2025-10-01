@@ -16,7 +16,9 @@ export class DoctorApprovedRequestsComponent implements OnInit {
   totalPages: number = 0;
   currentPage: number = 1;
   doctorId: number = 0;
-  searchTerm: string = ''; 
+  searchTerm: string = '';
+  typeFilter: string = '';
+  typesOfExamination: string[] = ['REGULAR', 'SPECIALIST', 'URGENT'];
 
   constructor(
     private requestService: ExaminationRequestService,
@@ -42,7 +44,7 @@ export class DoctorApprovedRequestsComponent implements OnInit {
   loadApprovedRequests(page: number = 1) {
     this.currentPage = page;
     this.requestService
-      .getApprovedRequestsByDoctor(this.doctorId, page, this.searchTerm)
+      .getApprovedRequestsByDoctorFiltered(this.doctorId, page, this.searchTerm, this.typeFilter)
       .subscribe(
         (res: any) => {
           this.approvedRequests = res.requests;
@@ -75,4 +77,9 @@ export class DoctorApprovedRequestsComponent implements OnInit {
   reviewRequest(requestId: number) {
     this.router.navigate(['/examination', requestId]);
   }
+
+  onFilterChange() {
+    this.loadApprovedRequests(1);
+  }
+
 }

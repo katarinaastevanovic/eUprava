@@ -89,9 +89,16 @@ export class ExaminationRequestService {
     return this.http.get<Student[]>(`${this.apiGatewayUrl}/auth/users/students`, this.getAuthHeaders());
   }
 
-  getApprovedRequestsByDoctor(doctorId: number, page: number = 1, search: string = ''): Observable<{ requests: RequestWithStudent[]; totalPages: number }> {
-    let url = `${this.apiGatewayUrl}/medical/requests/doctor/${doctorId}/approved?page=${page}`;
-    if (search) url += `&search=${encodeURIComponent(search)}`;
-    return this.http.get<{ requests: RequestWithStudent[]; totalPages: number }>(url, this.getAuthHeaders());
-  }
+  getApprovedRequestsByDoctorFiltered(
+  doctorId: number,
+  page: number = 1,
+  search: string = '',
+  type: string = ''
+): Observable<{ requests: RequestWithStudent[]; totalPages: number }> {
+  let url = `${this.apiGatewayUrl}/medical/requests/doctor/${doctorId}/approved?page=${page}`;
+  if (search) url += `&search=${encodeURIComponent(search)}`;
+  if (type) url += `&type=${encodeURIComponent(type)}`;
+  return this.http.get<{ requests: RequestWithStudent[]; totalPages: number }>(url, this.getAuthHeaders());
+}
+
 }

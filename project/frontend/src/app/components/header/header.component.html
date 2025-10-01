@@ -5,10 +5,21 @@
     <nav class="flex items-center space-x-3">
       <a routerLink="/register" class="px-3 font-semibold hover:text-gray-200" *ngIf="!isLoggedIn()">Register</a>
       <a routerLink="/login" class="px-3 font-semibold hover:text-gray-200" *ngIf="!isLoggedIn()">Login</a>
-      <a routerLink="/medical-record" class="px-3 font-semibold hover:text-gray-200" *ngIf="isLoggedIn()">Medical
-        Record</a>
-      <a routerLink="/requests" class="px-3 font-semibold hover:text-gray-200" *ngIf="isLoggedIn()">Examination
-        requests</a>
+      <a routerLink="/medical-record" class="px-3 font-semibold hover:text-gray-200"
+        *ngIf="isLoggedIn() && isStudent()">
+        Medical Record
+      </a>
+      <a routerLink="/requests" class="px-3 font-semibold hover:text-gray-200" *ngIf="isLoggedIn() && isStudent()">
+        Examination requests
+      </a>
+      <a routerLink="/doctors-requests" class="px-3 font-semibold hover:text-gray-200"
+        *ngIf="isLoggedIn() && isDoctor()">
+        Patient Requests
+      </a>
+      <a routerLink="/approved-requests" class="px-3 font-semibold hover:text-gray-200"
+        *ngIf="isLoggedIn() && isDoctor()">
+        Approved Requests
+      </a>
     </nav>
 
     <div class="flex items-center space-x-3" *ngIf="isLoggedIn()">

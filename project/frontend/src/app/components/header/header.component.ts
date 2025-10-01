@@ -25,7 +25,9 @@ export class HeaderComponent implements OnInit {
 
   logout() {
     this.authService.logout().then(() => {
-      this.router.navigate(['/login']);
+      this.router.navigate(['']).then(() => {
+        window.location.reload();
+      });
     });
   }
 
@@ -41,16 +43,16 @@ export class HeaderComponent implements OnInit {
   }
 
   loadNotifications() {
-  this.notificationService.getNotifications(this.studentId).subscribe(
-    res => {
-      this.notifications = res.sort((a, b) => {
-        if (a.read === b.read) return 0;
-        return a.read ? 1 : -1; 
-      });
-    },
-    err => console.error(err)
-  );
-}
+    this.notificationService.getNotifications(this.studentId).subscribe(
+      res => {
+        this.notifications = res.sort((a, b) => {
+          if (a.read === b.read) return 0;
+          return a.read ? 1 : -1;
+        });
+      },
+      err => console.error(err)
+    );
+  }
 
   get unreadCount(): number {
     return this.notifications.filter(n => !n.read).length;
@@ -65,10 +67,36 @@ export class HeaderComponent implements OnInit {
   }
 
   markAsRead(notif: StudentNotification) {
-  if (!notif.read && notif.ID !== undefined) {
-    this.notificationService.markAsRead(this.studentId, notif.ID).subscribe(() => {
-      notif.read = true;
-    });
+    if (!notif.read && notif.ID !== undefined) {
+      this.notificationService.markAsRead(this.studentId, notif.ID).subscribe(() => {
+        notif.read = true;
+      });
+    }
+  }
+
+  isStudent(): boolean {
+  const token = localStorage.getItem('jwt');
+  if (!token) return false;
+
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.role === 'STUDENT';
+  } catch (err) {
+    console.error('Failed to decode token', err);
+    return false;
+  }
+}
+
+isDoctor(): boolean {
+  const token = localStorage.getItem('jwt');
+  if (!token) return false;
+
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.role === 'DOCTOR';
+  } catch (err) {
+    console.error('Failed to decode token', err);
+    return false;
   }
 }
 
