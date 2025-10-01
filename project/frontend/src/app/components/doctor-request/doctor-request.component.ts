@@ -13,12 +13,12 @@ export class DoctorRequestsComponent implements OnInit {
   requests: RequestWithStudent[] = [];
   doctorId: number = 0;
 
-  constructor(private requestService: ExaminationRequestService) {}
+  constructor(private requestService: ExaminationRequestService) { }
 
   ngOnInit() {
     this.doctorId = this.getUserIdFromToken();
     if (this.doctorId) {
-      this.loadRequests(); 
+      this.loadRequests();
     }
   }
 
@@ -31,15 +31,36 @@ export class DoctorRequestsComponent implements OnInit {
     return Number(decoded.sub) || 0;
   }
 
+  currentPage = 1;
+  totalPages = 1;
+  pageSize = 10;
+
   loadRequests() {
-    this.requestService.getRequestsByDoctor(this.doctorId).subscribe(
-      (res: RequestWithStudent[]) => {
-        console.log('Requests with student names:', res);
-        this.requests = res;
-      },
-      err => console.error('Failed to load requests:', err)
-    );
+    this.requestService.getRequestsByDoctorPaginated(this.doctorId, this.currentPage, this.pageSize)
+      .subscribe(res => {
+        this.requests = res.requests;
+        this.totalPages = res.totalPages;
+      }, err => console.error(err));
   }
+
+  prevPage() {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+      this.loadRequests();
+    }
+  }
+
+  nextPage() {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+      this.loadRequests();
+    }
+  }
+
+  goToPage(page: number) {
+  this.currentPage = page;
+  this.loadRequests();
+}
 
   approveRequest(requestId: number) {
     this.requestService.approveRequest(requestId).subscribe(

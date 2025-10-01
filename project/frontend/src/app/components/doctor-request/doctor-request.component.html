@@ -45,5 +45,28 @@
       </table>
     </div>
 
+    <div class="flex justify-center mt-4 space-x-2">
+      <button (click)="prevPage()" [disabled]="currentPage === 1"
+        class="px-4 py-2 bg-gray-200 rounded text-sm">Prev</button>
+
+      <ng-container *ngFor="let page of [1, 2]">
+        <button *ngIf="page <= totalPages" (click)="goToPage(page)"
+          [ngClass]="{'bg-teal-500 text-white': currentPage === page, 'bg-gray-200 text-black': currentPage !== page}"
+          class="px-2 py-1 rounded text-sm">
+          {{ page }}
+        </button>
+      </ng-container>
+
+      <span *ngIf="totalPages > 3" class="px-2 py-1 text-sm">...</span>
+
+      <button *ngIf="totalPages > 2" (click)="goToPage(totalPages)"
+        [ngClass]="{'bg-teal-500 text-white': currentPage === totalPages, 'bg-gray-200 text-black': currentPage !== totalPages}"
+        class="px-2 py-1 rounded text-sm">
+        {{ totalPages }}
+      </button>
+
+      <button (click)="nextPage()" [disabled]="currentPage === totalPages"
+        class="px-2 py-1 bg-gray-200 rounded text-sm">Next</button>
+    </div>
   </div>
 </div>

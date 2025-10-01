@@ -38,9 +38,9 @@ export interface Student {
   providedIn: 'root'
 })
 export class ExaminationRequestService {
-  private apiGatewayUrl = 'http://localhost:8080/api'; 
+  private apiGatewayUrl = 'http://localhost:8080/api';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   private getAuthHeaders(): { headers: HttpHeaders } {
     const token = localStorage.getItem('jwt');
@@ -52,8 +52,8 @@ export class ExaminationRequestService {
 
   createRequest(request: Request): Observable<Request> {
     return this.http.post<Request>(
-      `${this.apiGatewayUrl}/school/requests`, 
-      request, 
+      `${this.apiGatewayUrl}/school/requests`,
+      request,
       this.getAuthHeaders()
     );
   }
@@ -65,11 +65,12 @@ export class ExaminationRequestService {
     );
   }
 
-  getRequestsByDoctor(doctorId: number): Observable<RequestWithStudent[]> {
-  return this.http.get<RequestWithStudent[]>(
-    `${this.apiGatewayUrl}/medical/requests/doctor/${doctorId}`,
-    this.getAuthHeaders()
-  );
+
+  getRequestsByDoctorPaginated(doctorId: number, page: number, pageSize: number): Observable<{ requests: RequestWithStudent[], totalPages: number }> {
+    return this.http.get<{ requests: RequestWithStudent[], totalPages: number }>(
+      `${this.apiGatewayUrl}/medical/requests/doctor/${doctorId}?page=${page}&pageSize=${pageSize}`,
+      this.getAuthHeaders()
+    );
   }
 
   approveRequest(requestId: number): Observable<void> {
@@ -102,11 +103,14 @@ export class ExaminationRequestService {
     );
   }
 
-  getApprovedRequestsByDoctor(doctorId: number): Observable<RequestWithStudent[]> {
-  return this.http.get<RequestWithStudent[]>(
-    `${this.apiGatewayUrl}/medical/requests/doctor/${doctorId}/approved`,
-    this.getAuthHeaders()
-  );
+  getApprovedRequestsByDoctor(
+    doctorId: number,
+    page: number = 1
+  ): Observable<{ requests: RequestWithStudent[]; totalPages: number }> {
+    return this.http.get<{ requests: RequestWithStudent[]; totalPages: number }>(
+      `${this.apiGatewayUrl}/medical/requests/doctor/${doctorId}/approved?page=${page}`,
+      this.getAuthHeaders()
+    );
   }
 
 }

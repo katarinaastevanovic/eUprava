@@ -106,14 +106,27 @@ func GetRequestsByDoctor(w http.ResponseWriter, r *http.Request) {
 	idStr := mux.Vars(r)["id"]
 	doctorId, _ := strconv.Atoi(idStr)
 
-	requests, err := services.GetRequestsByDoctorWithStudent(uint(doctorId))
+	pageStr := r.URL.Query().Get("page")
+	page := 1
+	if pageStr != "" {
+		if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
+			page = p
+		}
+	}
+
+	const pageSize = 15
+
+	requests, totalPages, err := services.GetRequestsByDoctorWithStudentPaginated(uint(doctorId), page, pageSize, "")
 	if err != nil {
 		http.Error(w, "Failed to fetch requests", http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(requests)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"requests":   requests,
+		"totalPages": totalPages,
+	})
 }
 
 func ApproveRequest(w http.ResponseWriter, r *http.Request) {
@@ -146,14 +159,27 @@ func GetApprovedRequestsByDoctor(w http.ResponseWriter, r *http.Request) {
 	idStr := mux.Vars(r)["id"]
 	doctorId, _ := strconv.Atoi(idStr)
 
-	requests, err := services.GetApprovedRequestsByDoctorWithStudent(uint(doctorId))
+	pageStr := r.URL.Query().Get("page")
+	page := 1
+	if pageStr != "" {
+		if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
+			page = p
+		}
+	}
+
+	const pageSize = 5
+
+	requests, totalPages, err := services.GetRequestsByDoctorWithStudentPaginated(uint(doctorId), page, pageSize, models.APPROVED)
 	if err != nil {
 		http.Error(w, "Failed to fetch approved requests", http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(requests)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"requests":   requests,
+		"totalPages": totalPages,
+	})
 }
 
 func GetRequestById(w http.ResponseWriter, r *http.Request) {

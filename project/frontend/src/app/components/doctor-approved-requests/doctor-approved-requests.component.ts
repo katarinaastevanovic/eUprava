@@ -12,12 +12,14 @@ import { Router } from '@angular/router';
 })
 export class DoctorApprovedRequestsComponent implements OnInit {
   approvedRequests: RequestWithStudent[] = [];
+  totalPages: number = 0;
+  currentPage: number = 1;
   doctorId: number = 0;
 
   constructor(
-    private requestService: ExaminationRequestService, 
+    private requestService: ExaminationRequestService,
     private router: Router
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.doctorId = this.getUserIdFromToken();
@@ -35,14 +37,31 @@ export class DoctorApprovedRequestsComponent implements OnInit {
     return Number(decoded.sub) || 0;
   }
 
-  loadApprovedRequests() {
-    this.requestService.getApprovedRequestsByDoctor(this.doctorId).subscribe(
-      (res: RequestWithStudent[]) => {
-        console.log('Approved requests:', res);
-        this.approvedRequests = res;
+  loadApprovedRequests(page: number = 1) {
+    this.currentPage = page;
+    this.requestService.getApprovedRequestsByDoctor(this.doctorId, page).subscribe(
+      (res: any) => {
+        this.approvedRequests = res.requests;
+        this.totalPages = res.totalPages;
       },
       err => console.error('Failed to load approved requests:', err)
     );
+  }
+
+  prevPage() {
+    if (this.currentPage > 1) {
+      this.loadApprovedRequests(this.currentPage - 1);
+    }
+  }
+
+  nextPage() {
+    if (this.currentPage < this.totalPages) {
+      this.loadApprovedRequests(this.currentPage + 1);
+    }
+  }
+
+  goToPage(page: number) {
+    this.loadApprovedRequests(page);
   }
 
   reviewRequest(requestId: number) {
