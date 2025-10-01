@@ -52,7 +52,7 @@ export class ExaminationRequestService {
 
   createRequest(request: Request): Observable<Request> {
     return this.http.post<Request>(
-      `${this.apiGatewayUrl}/medical/requests`, 
+      `${this.apiGatewayUrl}/school/requests`, 
       request, 
       this.getAuthHeaders()
     );

@@ -39,6 +39,7 @@ func main() {
 	router.HandleFunc("/students/{studentID}/subjects/{subjectID}/absences/count", schoolHandler.GetAbsenceCountForSubject).Methods("GET")
 	router.HandleFunc("/students/by-user/{userId}", schoolHandler.GetStudentByUserID).Methods("GET")
 	router.HandleFunc("/students/by-user/{userId}/profile", schoolHandler.GetStudentFullProfile).Methods("GET")
+	router.HandleFunc("/requests", handlers.CreateRequest).Methods("POST")
 
 	handler := corsMiddleware(router)
 
