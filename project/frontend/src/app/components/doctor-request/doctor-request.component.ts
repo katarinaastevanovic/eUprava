@@ -18,6 +18,7 @@ export class DoctorRequestsComponent implements OnInit {
   totalPages = 1;
   pageSize = 10;
   searchTerm = '';
+  sortPending = false;
 
   statusFilter = '';
   typeFilter = '';
@@ -41,18 +42,30 @@ export class DoctorRequestsComponent implements OnInit {
 
   loadRequests(page: number = 1) {
     this.currentPage = page;
+    let sortParam = this.sortPending ? 'requestedFirst' : '';
+
+    console.log('Loading requests:', {
+      page,
+      sortParam,
+      search: this.searchTerm,
+      status: this.statusFilter,
+      type: this.typeFilter
+    });
+
     this.requestService.getRequestsByDoctorPaginated(
       this.doctorId,
       page,
       this.pageSize,
       this.searchTerm,
       this.statusFilter,
-      this.typeFilter
+      this.typeFilter,
+      sortParam
     ).subscribe(res => {
       this.requests = res.requests;
       this.totalPages = res.totalPages;
     }, err => console.error(err));
   }
+
 
   onSearch() {
     this.loadRequests(1);

@@ -115,6 +115,8 @@ func GetRequestsByDoctor(w http.ResponseWriter, r *http.Request) {
 	search := r.URL.Query().Get("search")
 	status := r.URL.Query().Get("status")
 	reqType := r.URL.Query().Get("type")
+	sortParam := r.URL.Query().Get("sort")
+	sortPending := sortParam == "requestedFirst"
 
 	const pageSize = 15
 
@@ -125,6 +127,7 @@ func GetRequestsByDoctor(w http.ResponseWriter, r *http.Request) {
 		status,
 		search,
 		reqType,
+		sortPending,
 	)
 	if err != nil {
 		http.Error(w, "Failed to fetch requests", http.StatusInternalServerError)

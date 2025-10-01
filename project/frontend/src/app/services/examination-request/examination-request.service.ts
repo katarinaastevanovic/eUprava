@@ -62,12 +62,14 @@ export class ExaminationRequestService {
     pageSize: number,
     search: string = '',
     status: string = '',
-    type: string = ''
+    type: string = '',
+    sort: string = ''
   ): Observable<{ requests: RequestWithStudent[], totalPages: number }> {
     let url = `${this.apiGatewayUrl}/medical/requests/doctor/${doctorId}?page=${page}&pageSize=${pageSize}`;
     if (search) url += `&search=${encodeURIComponent(search)}`;
     if (status) url += `&status=${encodeURIComponent(status)}`;
     if (type) url += `&type=${encodeURIComponent(type)}`;
+    if (sort) url += `&sort=${encodeURIComponent(sort)}`;
     return this.http.get<{ requests: RequestWithStudent[], totalPages: number }>(url, this.getAuthHeaders());
   }
 

@@ -223,6 +223,7 @@ func GetRequestsByDoctorWithStudentPaginatedCustomFilters(
 	status string,
 	search string,
 	reqType string,
+	sortPending bool, // flag za globalno sortiranje
 ) ([]RequestWithStudent, int, error) {
 
 	var requests []models.Request
@@ -268,6 +269,10 @@ func GetRequestsByDoctorWithStudentPaginatedCustomFilters(
 		})
 	}
 
+	if sortPending {
+		filtered = SortRequestsPendingFirst(filtered)
+	}
+
 	total := len(filtered)
 	start := (page - 1) * pageSize
 	end := start + pageSize
@@ -281,4 +286,22 @@ func GetRequestsByDoctorWithStudentPaginatedCustomFilters(
 
 	totalPages := (total + pageSize - 1) / pageSize
 	return paginated, totalPages, nil
+}
+
+func SortRequestsPendingFirst(requests []RequestWithStudent) []RequestWithStudent {
+	sorted := make([]RequestWithStudent, len(requests))
+	copy(sorted, requests)
+
+	pending := []RequestWithStudent{}
+	others := []RequestWithStudent{}
+
+	for _, r := range sorted {
+		if r.Status == "REQUESTED" {
+			pending = append(pending, r)
+		} else {
+			others = append(others, r)
+		}
+	}
+
+	return append(pending, others...)
 }

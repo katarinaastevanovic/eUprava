@@ -2,23 +2,25 @@
   <div class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-6xl">
     <h3 class="text-3xl font-bold text-teal-700 mb-4 text-center">Patient Requests</h3>
 
-    <div class="mb-6 flex justify-center space-x-4">
-      <input
-        type="text"
-        placeholder="Search by patient name..."
-        [(ngModel)]="searchTerm"
-        (input)="onSearch()"
-        class="px-4 py-2 border rounded-lg w-1/3 focus:outline-none focus:ring-2 focus:ring-teal-500"
-      />
+    <div class="mb-6 flex justify-center space-x-4 items-center">
+      <div class="relative w-1/3">
+        <input type="text" placeholder="Search by patient name..." [(ngModel)]="searchTerm" (input)="onSearch()"
+          class="pl-10 pr-4 py-2 w-full border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500" />
+        <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" fill="none"
+          stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" />
+        </svg>
+      </div>
 
       <select [(ngModel)]="typeFilter" (change)="onFilterChange()"
-              class="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500">
+        class="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500">
         <option value="">Filter by types</option>
         <option *ngFor="let t of typesOfExamination" [value]="t">{{ t }}</option>
       </select>
-      
+
       <select [(ngModel)]="statusFilter" (change)="onFilterChange()"
-              class="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500">
+        class="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500">
         <option value="">Filter by status</option>
         <option value="REQUESTED">Pending</option>
         <option value="APPROVED">Approved</option>
@@ -26,6 +28,12 @@
         <option value="FINISHED">Finished</option>
       </select>
 
+      <label
+        class="flex items-center space-x-2 px-4 py-2 border rounded-lg cursor-pointer hover:ring-2 hover:ring-teal-500">
+        <input type="checkbox" [(ngModel)]="sortPending" (change)="onFilterChange()"
+          class="form-checkbox h-5 w-5 text-teal-600" />
+        <span class="text-gray-700 font-medium">Sort by Pending</span>
+      </label>
     </div>
 
     <div class="overflow-x-auto">
@@ -43,27 +51,26 @@
             <td class="px-6 py-4 border-b border-gray-200">{{ req.studentName }}</td>
             <td class="px-6 py-4 border-b border-gray-200">{{ req.type }}</td>
             <td class="px-6 py-4 border-b border-gray-200">
-              <span class="px-3 py-1 rounded-full text-sm font-semibold"
-                    [ngClass]="{
+              <span class="px-3 py-1 rounded-full text-sm font-semibold" [ngClass]="{
                       'bg-yellow-50 text-yellow-700': req.status === 'REQUESTED',
                       'bg-green-50 text-green-700': req.status === 'APPROVED',
                       'bg-red-50 text-red-700': req.status === 'REJECTED',
                       'bg-blue-50 text-blue-700': req.status === 'FINISHED'
                     }">
                 {{ req.status
-                  ? (req.status === 'REQUESTED' ? 'Pending' : req.status.charAt(0) + req.status.slice(1).toLowerCase())
-                  : '-' }}
+                ? (req.status === 'REQUESTED' ? 'Pending' : req.status.charAt(0) + req.status.slice(1).toLowerCase())
+                : '-' }}
               </span>
             </td>
             <td class="px-6 py-4 border-b border-gray-200 space-x-2">
               <button *ngIf="req.status === 'REQUESTED'"
-                      class="bg-green-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-600 transition shadow-sm"
-                      (click)="approveRequest(req.id!)">
+                class="bg-green-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-600 transition shadow-sm"
+                (click)="approveRequest(req.id!)">
                 Approve
               </button>
               <button *ngIf="req.status === 'REQUESTED'"
-                      class="bg-red-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-600 transition shadow-sm"
-                      (click)="rejectRequest(req.id!)">
+                class="bg-red-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-600 transition shadow-sm"
+                (click)="rejectRequest(req.id!)">
                 Reject
               </button>
             </td>
@@ -79,17 +86,16 @@
 
     <div class="flex justify-center mt-4 space-x-2">
       <button (click)="prevPage()" [disabled]="currentPage === 1"
-              class="px-4 py-2 bg-gray-200 rounded text-sm">Prev</button>
+        class="px-4 py-2 bg-gray-200 rounded text-sm">Prev</button>
 
-      <button *ngFor="let page of [].constructor(totalPages); let i = index"
-              (click)="goToPage(i + 1)"
-              [ngClass]="{'bg-teal-500 text-white': currentPage === i + 1, 'bg-gray-200 text-black': currentPage !== i + 1}"
-              class="px-2 py-1 rounded text-sm">
+      <button *ngFor="let page of [].constructor(totalPages); let i = index" (click)="goToPage(i + 1)"
+        [ngClass]="{'bg-teal-500 text-white': currentPage === i + 1, 'bg-gray-200 text-black': currentPage !== i + 1}"
+        class="px-2 py-1 rounded text-sm">
         {{ i + 1 }}
       </button>
 
       <button (click)="nextPage()" [disabled]="currentPage === totalPages"
-              class="px-4 py-2 bg-gray-200 rounded text-sm">Next</button>
+        class="px-4 py-2 bg-gray-200 rounded text-sm">Next</button>
     </div>
   </div>
 </div>
