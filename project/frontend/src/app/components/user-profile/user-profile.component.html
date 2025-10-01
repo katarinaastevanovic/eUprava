@@ -128,7 +128,7 @@
                         Grades ({{ grades?.length || 0 }})
                     </h6>
 
-                    <div class="space-y-4" *ngIf="grades && grades.length > 0; else noGrades">
+                    <div class="space-y-4 max-h-60 overflow-y-auto"  *ngIf="grades && grades.length > 0; else noGrades">
                         <div *ngFor="let grade of grades">
                             <small class="block font-medium text-gray-700">
                                 {{ grade.subject_name }} {{ grade.value }}

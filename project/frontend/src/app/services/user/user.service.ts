@@ -52,7 +52,18 @@ export interface SubjectAverage {
   subject_name: string;
   average: number;
 }
+export interface GradeItem {
+  value: number;
+  date: string;
+}
 
+export interface GradesResponse {
+  student_id: number;
+  subject_id: number;
+  teacher_id: number;
+  subject_name: string;
+  grades: GradeItem[];
+}
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
@@ -128,6 +139,32 @@ getStudentGrades(studentId: number): Observable<GradeDTO[]> {
 getStudentAveragesPerSubject(studentId: number): Observable<{ student_id: number; subjects: SubjectAverage[] }> {
   return this.http.get<{ student_id: number; subjects: SubjectAverage[] }>(
     `${environment.schoolApiBaseUrl}/students/${studentId}/averages-per-subject`
+  );
+}
+
+getGradesByStudentSubjectAndTeacher(
+  studentId: number,
+  subjectId: number,
+  teacherId: number
+) {
+  return this.http.get<GradesResponse>(
+    `${environment.schoolApiBaseUrl}/api/grades/student/${studentId}/subject/${subjectId}/teacher/${teacherId}`
+  );
+}
+
+getTeacherByUserId(userId: number) {
+  return this.http.get<{ id: number, user_id: number, subject_id: number }>(
+    `${environment.schoolApiBaseUrl}/api/teachers/user/${userId}`
+  );
+}
+
+getStudentSubjectTeacherAverage(
+  studentId: number,
+  subjectId: number,
+  teacherId: number
+): Observable<{ average: number; student_id: number; subject_id: number; teacher_id: number }> {
+  return this.http.get<{ average: number; student_id: number; subject_id: number; teacher_id: number }>(
+    `${environment.schoolApiBaseUrl}/students/${studentId}/subjects/${subjectId}/teachers/${teacherId}/average`
   );
 }
 

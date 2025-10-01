@@ -453,3 +453,22 @@ func (h *SchoolHandler) GetAverageByStudentPerSubjectHandler(w http.ResponseWrit
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp)
 }
+
+func (h *SchoolHandler) GetTeacherByUserIDHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userIDStr := vars["userId"]
+	userID, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		http.Error(w, "Invalid user ID", http.StatusBadRequest)
+		return
+	}
+
+	teacher, err := h.Service.GetTeacherByUserID(uint(userID))
+	if err != nil {
+		http.Error(w, "Teacher not found", http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(teacher)
+}

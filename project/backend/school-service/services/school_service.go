@@ -362,3 +362,12 @@ func (s *SchoolService) GetAverageGradeByStudentPerSubject(studentID uint) ([]Su
 	}
 	return results, nil
 }
+
+func (s *SchoolService) GetTeacherByUserID(userID uint) (*models.Teacher, error) {
+	var teacher models.Teacher
+	result := s.DB.Where("user_id = ?", userID).First(&teacher)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &teacher, nil
+}
