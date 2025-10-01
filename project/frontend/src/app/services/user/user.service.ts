@@ -168,5 +168,10 @@ getStudentSubjectTeacherAverage(
   );
 }
 
+searchStudents(classId: number, query: string): Observable<StudentDTO[]> {
+  return this.http.get<StudentDTO[]>(
+    `${environment.schoolApiBaseUrl}/api/classes/${classId}/students/search?query=${encodeURIComponent(query)}`
+  );
+}
 
 }

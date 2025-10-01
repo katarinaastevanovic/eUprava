@@ -24,6 +24,7 @@ func main() {
 	r.HandleFunc("/patients/{userId}", handlers.GetPatientHandler).Methods("GET")
 	r.HandleFunc("/users/doctors", handlers.GetAllDoctorsHandler).Methods("GET")
 	r.HandleFunc("/users/students", handlers.GetAllStudentsHandler).Methods("GET")
+	r.HandleFunc("/users/search", handlers.SearchMembersHandler).Methods("GET")
 	r.HandleFunc("/users/{userId}", handlers.GetUserByIdHandler).Methods("GET")
 
 	handler := corsMiddleware(r)

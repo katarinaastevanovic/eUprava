@@ -27,6 +27,7 @@ export class ClassroomComponent implements OnInit {
   students: StudentDTO[] = [];
   loading = true;
   teacherSubjectId!: number;
+  searchQuery = '';
 
   constructor(private route: ActivatedRoute, private userService: UserService) {}
 
@@ -114,6 +115,22 @@ confirmSelection() {
   });
 }
 
+onSearch() {
+  if (!this.searchQuery) {
+    this.loadStudents(); 
+    return;
+  }
+
+  this.userService.searchStudents(this.classId, this.searchQuery).subscribe({
+    next: (students: StudentDTO[]) => {
+      console.log('Search result:', students);
+      this.students = students;
+    },
+    error: (err) => {
+      console.error('Greška pri pretrazi učenika', err);
+    }
+  });
+}
 
 
   

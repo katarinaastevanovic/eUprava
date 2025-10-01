@@ -472,3 +472,29 @@ func (h *SchoolHandler) GetTeacherByUserIDHandler(w http.ResponseWriter, r *http
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(teacher)
 }
+
+func (h *SchoolHandler) SearchStudentsHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	classIDStr := vars["classId"]
+	classID, err := strconv.Atoi(classIDStr)
+	if err != nil {
+		http.Error(w, "Invalid class ID", http.StatusBadRequest)
+		return
+	}
+
+	query := r.URL.Query().Get("query")
+	if query == "" {
+		http.Error(w, "Query parameter is required", http.StatusBadRequest)
+		return
+	}
+
+	students, err := h.Service.SearchStudentsByName(uint(classID), query)
+	if err != nil {
+		http.Error(w, "Failed to search students: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(students)
+}

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"school-service/models"
 	"time"
@@ -370,4 +371,72 @@ func (s *SchoolService) GetTeacherByUserID(userID uint) (*models.Teacher, error)
 		return nil, result.Error
 	}
 	return &teacher, nil
+}
+
+type StudentDTO2 struct {
+	ID       uint   `json:"id"`
+	UserID   uint   `json:"userId"`
+	Name     string `json:"name"`
+	LastName string `json:"lastName"`
+}
+
+func (s *SchoolService) SearchStudentsByName(classID uint, query string) ([]StudentDTO2, error) {
+	// 1. uzmi sve studente u klasi
+	var students []models.Student
+	if err := s.DB.Where("class_id = ?", classID).Find(&students).Error; err != nil {
+		return nil, err
+	}
+
+	if len(students) == 0 {
+		return []StudentDTO2{}, nil
+	}
+
+	// 2. pozovi AUTH servis
+	authURL := fmt.Sprintf("%s/users/search?query=%s",
+		os.Getenv("AUTH_SERVICE_URL"),
+		url.QueryEscape(query),
+	)
+
+	resp, err := http.Get(authURL)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var members []struct {
+		ID       uint   `json:"id"`
+		Name     string `json:"name"`
+		LastName string `json:"last_name"`
+		Email    string `json:"email"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&members); err != nil {
+		return nil, err
+	}
+
+	// 3. napravi mapu za brži lookup
+	memberMap := make(map[uint]struct {
+		Name     string
+		LastName string
+	})
+	for _, m := range members {
+		memberMap[m.ID] = struct {
+			Name     string
+			LastName string
+		}{m.Name, m.LastName}
+	}
+
+	// 4. spoji podatke
+	var result []StudentDTO2
+	for _, st := range students {
+		if m, ok := memberMap[st.UserID]; ok {
+			result = append(result, StudentDTO2{
+				ID:       st.ID,
+				UserID:   st.UserID,
+				Name:     m.Name,
+				LastName: m.LastName,
+			})
+		}
+	}
+
+	return result, nil
 }

@@ -45,6 +45,7 @@ func main() {
 	router.HandleFunc("/students/{studentID}/average", schoolHandler.GetAverageByStudentHandler).Methods("GET")
 	router.HandleFunc("/students/{studentID}/averages-per-subject", schoolHandler.GetAverageByStudentPerSubjectHandler).Methods("GET")
 	router.HandleFunc("/api/teachers/user/{userId}", schoolHandler.GetTeacherByUserIDHandler).Methods("GET")
+	router.HandleFunc("/api/classes/{classId}/students/search", schoolHandler.SearchStudentsHandler).Methods("GET")
 
 	handler := corsMiddleware(router)
 
