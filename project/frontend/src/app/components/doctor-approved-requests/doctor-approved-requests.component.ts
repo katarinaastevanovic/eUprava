@@ -1,13 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
-import { ExaminationRequestService, RequestWithStudent } from '../../services/examination-request/examination-request.service';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { ExaminationRequestService, RequestWithStudent } from '../../services/examination-request/examination-request.service';
 
 @Component({
   selector: 'app-doctor-approved-requests',
   standalone: true,
-  imports: [CommonModule, HttpClientModule],
+  imports: [CommonModule, HttpClientModule, FormsModule],
   templateUrl: './doctor-approved-requests.component.html',
 })
 export class DoctorApprovedRequestsComponent implements OnInit {
@@ -15,6 +16,7 @@ export class DoctorApprovedRequestsComponent implements OnInit {
   totalPages: number = 0;
   currentPage: number = 1;
   doctorId: number = 0;
+  searchTerm: string = ''; 
 
   constructor(
     private requestService: ExaminationRequestService,
@@ -39,13 +41,19 @@ export class DoctorApprovedRequestsComponent implements OnInit {
 
   loadApprovedRequests(page: number = 1) {
     this.currentPage = page;
-    this.requestService.getApprovedRequestsByDoctor(this.doctorId, page).subscribe(
-      (res: any) => {
-        this.approvedRequests = res.requests;
-        this.totalPages = res.totalPages;
-      },
-      err => console.error('Failed to load approved requests:', err)
-    );
+    this.requestService
+      .getApprovedRequestsByDoctor(this.doctorId, page, this.searchTerm)
+      .subscribe(
+        (res: any) => {
+          this.approvedRequests = res.requests;
+          this.totalPages = res.totalPages;
+        },
+        err => console.error('Failed to load approved requests:', err)
+      );
+  }
+
+  onSearch() {
+    this.loadApprovedRequests(1);
   }
 
   prevPage() {

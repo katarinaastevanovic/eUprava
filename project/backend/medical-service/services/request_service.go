@@ -6,6 +6,7 @@ import (
 	"medical-service/database"
 	"medical-service/models"
 	"net/http"
+	"strings"
 )
 
 func CreateRequest(req *models.Request) error {
@@ -163,48 +164,35 @@ func GetRequestById(requestId uint) (*models.Request, error) {
 	return &req, nil
 }
 
-func GetRequestsByDoctorWithStudentPaginated(doctorId uint, page, pageSize int, status models.TypeOfRequest) ([]RequestWithStudent, int, error) {
-	var total int64
-	query := database.DB.Model(&models.Request{}).Where("doctor_id = ?", doctorId)
-
-	if status != "" {
-		query = query.Where("status = ?", status)
-	}
-
-	if err := query.Count(&total).Error; err != nil {
-		return nil, 0, err
-	}
-
-	offset := (page - 1) * pageSize
+func GetRequestsByDoctorWithStudentPaginated(doctorId uint, page, pageSize int, status models.TypeOfRequest, search string) ([]RequestWithStudent, int, error) {
 	var requests []models.Request
-	query = database.DB.Where("doctor_id = ?", doctorId)
+	query := database.DB.Where("doctor_id = ?", doctorId)
 	if status != "" {
 		query = query.Where("status = ?", status)
 	}
-	if err := query.Limit(pageSize).Offset(offset).Find(&requests).Error; err != nil {
+	if err := query.Find(&requests).Error; err != nil {
 		return nil, 0, err
 	}
 
-	var results []RequestWithStudent
+	var filtered []RequestWithStudent
 	for _, req := range requests {
 		var record models.MedicalRecord
 		if err := database.DB.First(&record, req.MedicalRecordId).Error; err != nil {
-			fmt.Printf("MedicalRecord not found for Request ID %d, MedicalRecordId %d\n", req.ID, req.MedicalRecordId)
 			continue
 		}
 
 		var patient models.Patient
 		if err := database.DB.First(&patient, record.PatientId).Error; err != nil {
-			fmt.Printf("Patient not found for MedicalRecord ID %d, PatientId %d\n", record.ID, record.PatientId)
 			continue
 		}
 
-		fmt.Printf("Found Patient: ID=%d, UserId=%d\n", patient.ID, patient.UserId)
-
 		studentName := getStudentNameFromAuth(patient.UserId)
-		fmt.Printf("Student name resolved: %s\n", studentName)
 
-		results = append(results, RequestWithStudent{
+		if search != "" && !strings.Contains(strings.ToLower(studentName), strings.ToLower(search)) {
+			continue
+		}
+
+		filtered = append(filtered, RequestWithStudent{
 			ID:              req.ID,
 			MedicalRecordId: req.MedicalRecordId,
 			DoctorId:        req.DoctorId,
@@ -214,6 +202,17 @@ func GetRequestsByDoctorWithStudentPaginated(doctorId uint, page, pageSize int, 
 		})
 	}
 
-	totalPages := int((total + int64(pageSize) - 1) / int64(pageSize))
-	return results, totalPages, nil
+	total := len(filtered)
+	start := (page - 1) * pageSize
+	end := start + pageSize
+	if start > total {
+		start = total
+	}
+	if end > total {
+		end = total
+	}
+	paginated := filtered[start:end]
+
+	totalPages := (total + pageSize - 1) / pageSize
+	return paginated, totalPages, nil
 }

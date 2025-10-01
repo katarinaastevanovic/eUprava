@@ -66,9 +66,18 @@ export class ExaminationRequestService {
   }
 
 
-  getRequestsByDoctorPaginated(doctorId: number, page: number, pageSize: number): Observable<{ requests: RequestWithStudent[], totalPages: number }> {
+  getRequestsByDoctorPaginated(
+    doctorId: number,
+    page: number,
+    pageSize: number,
+    search: string = ''
+  ): Observable<{ requests: RequestWithStudent[], totalPages: number }> {
+    let url = `${this.apiGatewayUrl}/medical/requests/doctor/${doctorId}?page=${page}&pageSize=${pageSize}`;
+    if (search) {
+      url += `&search=${encodeURIComponent(search)}`;
+    }
     return this.http.get<{ requests: RequestWithStudent[], totalPages: number }>(
-      `${this.apiGatewayUrl}/medical/requests/doctor/${doctorId}?page=${page}&pageSize=${pageSize}`,
+      url,
       this.getAuthHeaders()
     );
   }
@@ -105,10 +114,15 @@ export class ExaminationRequestService {
 
   getApprovedRequestsByDoctor(
     doctorId: number,
-    page: number = 1
+    page: number = 1,
+    search: string = ''
   ): Observable<{ requests: RequestWithStudent[]; totalPages: number }> {
+    let url = `${this.apiGatewayUrl}/medical/requests/doctor/${doctorId}/approved?page=${page}`;
+    if (search) {
+      url += `&search=${encodeURIComponent(search)}`;
+    }
     return this.http.get<{ requests: RequestWithStudent[]; totalPages: number }>(
-      `${this.apiGatewayUrl}/medical/requests/doctor/${doctorId}/approved?page=${page}`,
+      url,
       this.getAuthHeaders()
     );
   }

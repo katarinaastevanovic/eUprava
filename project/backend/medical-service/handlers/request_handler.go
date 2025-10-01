@@ -108,15 +108,21 @@ func GetRequestsByDoctor(w http.ResponseWriter, r *http.Request) {
 
 	pageStr := r.URL.Query().Get("page")
 	page := 1
-	if pageStr != "" {
-		if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
-			page = p
-		}
+	if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
+		page = p
 	}
+
+	search := r.URL.Query().Get("search")
 
 	const pageSize = 15
 
-	requests, totalPages, err := services.GetRequestsByDoctorWithStudentPaginated(uint(doctorId), page, pageSize, "")
+	requests, totalPages, err := services.GetRequestsByDoctorWithStudentPaginated(
+		uint(doctorId),
+		page,
+		pageSize,
+		"",
+		search,
+	)
 	if err != nil {
 		http.Error(w, "Failed to fetch requests", http.StatusInternalServerError)
 		return
@@ -161,15 +167,15 @@ func GetApprovedRequestsByDoctor(w http.ResponseWriter, r *http.Request) {
 
 	pageStr := r.URL.Query().Get("page")
 	page := 1
-	if pageStr != "" {
-		if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
-			page = p
-		}
+	if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
+		page = p
 	}
+
+	search := r.URL.Query().Get("search")
 
 	const pageSize = 5
 
-	requests, totalPages, err := services.GetRequestsByDoctorWithStudentPaginated(uint(doctorId), page, pageSize, models.APPROVED)
+	requests, totalPages, err := services.GetRequestsByDoctorWithStudentPaginated(uint(doctorId), page, pageSize, models.APPROVED, search)
 	if err != nil {
 		http.Error(w, "Failed to fetch approved requests", http.StatusInternalServerError)
 		return
