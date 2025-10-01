@@ -113,15 +113,18 @@ func GetRequestsByDoctor(w http.ResponseWriter, r *http.Request) {
 	}
 
 	search := r.URL.Query().Get("search")
+	status := r.URL.Query().Get("status")
+	reqType := r.URL.Query().Get("type")
 
 	const pageSize = 15
 
-	requests, totalPages, err := services.GetRequestsByDoctorWithStudentPaginated(
+	requests, totalPages, err := services.GetRequestsByDoctorWithStudentPaginatedCustomFilters(
 		uint(doctorId),
 		page,
 		pageSize,
-		"",
+		status,
 		search,
+		reqType,
 	)
 	if err != nil {
 		http.Error(w, "Failed to fetch requests", http.StatusInternalServerError)

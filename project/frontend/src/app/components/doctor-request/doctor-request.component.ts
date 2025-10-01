@@ -19,13 +19,15 @@ export class DoctorRequestsComponent implements OnInit {
   pageSize = 10;
   searchTerm = '';
 
+  statusFilter = '';
+  typeFilter = '';
+  typesOfExamination: string[] = ['REGULAR', 'SPECIALIST', 'URGENT'];
+
   constructor(private requestService: ExaminationRequestService) { }
 
   ngOnInit() {
     this.doctorId = this.getUserIdFromToken();
-    if (this.doctorId) {
-      this.loadRequests();
-    }
+    if (this.doctorId) this.loadRequests();
   }
 
   getUserIdFromToken(): number {
@@ -43,7 +45,9 @@ export class DoctorRequestsComponent implements OnInit {
       this.doctorId,
       page,
       this.pageSize,
-      this.searchTerm
+      this.searchTerm,
+      this.statusFilter,
+      this.typeFilter
     ).subscribe(res => {
       this.requests = res.requests;
       this.totalPages = res.totalPages;
@@ -51,19 +55,19 @@ export class DoctorRequestsComponent implements OnInit {
   }
 
   onSearch() {
-    this.loadRequests(1); 
+    this.loadRequests(1);
+  }
+
+  onFilterChange() {
+    this.loadRequests(1);
   }
 
   prevPage() {
-    if (this.currentPage > 1) {
-      this.loadRequests(this.currentPage - 1);
-    }
+    if (this.currentPage > 1) this.loadRequests(this.currentPage - 1);
   }
 
   nextPage() {
-    if (this.currentPage < this.totalPages) {
-      this.loadRequests(this.currentPage + 1);
-    }
+    if (this.currentPage < this.totalPages) this.loadRequests(this.currentPage + 1);
   }
 
   goToPage(page: number) {

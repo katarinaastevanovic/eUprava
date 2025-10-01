@@ -216,3 +216,69 @@ func GetRequestsByDoctorWithStudentPaginated(doctorId uint, page, pageSize int, 
 	totalPages := (total + pageSize - 1) / pageSize
 	return paginated, totalPages, nil
 }
+
+func GetRequestsByDoctorWithStudentPaginatedCustomFilters(
+	doctorId uint,
+	page, pageSize int,
+	status string,
+	search string,
+	reqType string,
+) ([]RequestWithStudent, int, error) {
+
+	var requests []models.Request
+	query := database.DB.Where("doctor_id = ?", doctorId)
+
+	if status != "" {
+		query = query.Where("status = ?", status)
+	}
+
+	if reqType != "" {
+		query = query.Where("type = ?", reqType)
+	}
+
+	if err := query.Find(&requests).Error; err != nil {
+		return nil, 0, err
+	}
+
+	var filtered []RequestWithStudent
+	for _, req := range requests {
+		var record models.MedicalRecord
+		if err := database.DB.First(&record, req.MedicalRecordId).Error; err != nil {
+			continue
+		}
+
+		var patient models.Patient
+		if err := database.DB.First(&patient, record.PatientId).Error; err != nil {
+			continue
+		}
+
+		studentName := getStudentNameFromAuth(patient.UserId)
+
+		if search != "" && !strings.Contains(strings.ToLower(studentName), strings.ToLower(search)) {
+			continue
+		}
+
+		filtered = append(filtered, RequestWithStudent{
+			ID:              req.ID,
+			MedicalRecordId: req.MedicalRecordId,
+			DoctorId:        req.DoctorId,
+			Type:            req.Type,
+			Status:          req.Status,
+			StudentName:     studentName,
+		})
+	}
+
+	total := len(filtered)
+	start := (page - 1) * pageSize
+	end := start + pageSize
+	if start > total {
+		start = total
+	}
+	if end > total {
+		end = total
+	}
+	paginated := filtered[start:end]
+
+	totalPages := (total + pageSize - 1) / pageSize
+	return paginated, totalPages, nil
+}

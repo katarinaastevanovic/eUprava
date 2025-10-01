@@ -44,87 +44,52 @@ export class ExaminationRequestService {
 
   private getAuthHeaders(): { headers: HttpHeaders } {
     const token = localStorage.getItem('jwt');
-    const headers = new HttpHeaders({
-      'Authorization': `Bearer ${token}`
-    });
+    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
     return { headers };
   }
 
   createRequest(request: Request): Observable<Request> {
-    return this.http.post<Request>(
-      `${this.apiGatewayUrl}/school/requests`,
-      request,
-      this.getAuthHeaders()
-    );
+    return this.http.post<Request>(`${this.apiGatewayUrl}/school/requests`, request, this.getAuthHeaders());
   }
 
   getRequestsByPatient(patientId: number): Observable<Request[]> {
-    return this.http.get<Request[]>(
-      `${this.apiGatewayUrl}/medical/requests/patient/${patientId}`,
-      this.getAuthHeaders()
-    );
+    return this.http.get<Request[]>(`${this.apiGatewayUrl}/medical/requests/patient/${patientId}`, this.getAuthHeaders());
   }
-
 
   getRequestsByDoctorPaginated(
     doctorId: number,
     page: number,
     pageSize: number,
-    search: string = ''
+    search: string = '',
+    status: string = '',
+    type: string = ''
   ): Observable<{ requests: RequestWithStudent[], totalPages: number }> {
     let url = `${this.apiGatewayUrl}/medical/requests/doctor/${doctorId}?page=${page}&pageSize=${pageSize}`;
-    if (search) {
-      url += `&search=${encodeURIComponent(search)}`;
-    }
-    return this.http.get<{ requests: RequestWithStudent[], totalPages: number }>(
-      url,
-      this.getAuthHeaders()
-    );
+    if (search) url += `&search=${encodeURIComponent(search)}`;
+    if (status) url += `&status=${encodeURIComponent(status)}`;
+    if (type) url += `&type=${encodeURIComponent(type)}`;
+    return this.http.get<{ requests: RequestWithStudent[], totalPages: number }>(url, this.getAuthHeaders());
   }
 
   approveRequest(requestId: number): Observable<void> {
-    return this.http.patch<void>(
-      `${this.apiGatewayUrl}/medical/requests/${requestId}/approve`,
-      {},
-      this.getAuthHeaders()
-    );
+    return this.http.patch<void>(`${this.apiGatewayUrl}/medical/requests/${requestId}/approve`, {}, this.getAuthHeaders());
   }
 
   rejectRequest(requestId: number): Observable<void> {
-    return this.http.patch<void>(
-      `${this.apiGatewayUrl}/medical/requests/${requestId}/reject`,
-      {},
-      this.getAuthHeaders()
-    );
+    return this.http.patch<void>(`${this.apiGatewayUrl}/medical/requests/${requestId}/reject`, {}, this.getAuthHeaders());
   }
 
   getDoctors(): Observable<Doctor[]> {
-    return this.http.get<Doctor[]>(
-      `${this.apiGatewayUrl}/auth/users/doctors`,
-      this.getAuthHeaders()
-    );
+    return this.http.get<Doctor[]>(`${this.apiGatewayUrl}/auth/users/doctors`, this.getAuthHeaders());
   }
 
   getAllStudents(): Observable<Student[]> {
-    return this.http.get<Student[]>(
-      `${this.apiGatewayUrl}/auth/users/students`,
-      this.getAuthHeaders()
-    );
+    return this.http.get<Student[]>(`${this.apiGatewayUrl}/auth/users/students`, this.getAuthHeaders());
   }
 
-  getApprovedRequestsByDoctor(
-    doctorId: number,
-    page: number = 1,
-    search: string = ''
-  ): Observable<{ requests: RequestWithStudent[]; totalPages: number }> {
+  getApprovedRequestsByDoctor(doctorId: number, page: number = 1, search: string = ''): Observable<{ requests: RequestWithStudent[]; totalPages: number }> {
     let url = `${this.apiGatewayUrl}/medical/requests/doctor/${doctorId}/approved?page=${page}`;
-    if (search) {
-      url += `&search=${encodeURIComponent(search)}`;
-    }
-    return this.http.get<{ requests: RequestWithStudent[]; totalPages: number }>(
-      url,
-      this.getAuthHeaders()
-    );
+    if (search) url += `&search=${encodeURIComponent(search)}`;
+    return this.http.get<{ requests: RequestWithStudent[]; totalPages: number }>(url, this.getAuthHeaders());
   }
-
 }
