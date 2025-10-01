@@ -5,7 +5,12 @@ import (
 	"log"
 	"net/http"
 	"school-service/services"
+	"sync"
+	"time"
 )
+
+var userRequests = make(map[uint][]time.Time)
+var mu sync.Mutex
 
 func CreateRequest(w http.ResponseWriter, r *http.Request) {
 	var req services.RequestDTO
@@ -23,12 +28,40 @@ func CreateRequest(w http.ResponseWriter, r *http.Request) {
 		jwtToken = jwtToken[7:]
 	}
 
-	err := services.CreateRequest(req, jwtToken)
+	userId, err := services.GetUserIdFromJWT(jwtToken)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	mu.Lock()
+	now := time.Now()
+	windowStart := now.Add(-time.Minute)
+	timestamps := userRequests[userId]
+
+	var updated []time.Time
+	for _, t := range timestamps {
+		if t.After(windowStart) {
+			updated = append(updated, t)
+		}
+	}
+
+	if len(updated) >= 5 {
+		mu.Unlock()
+		http.Error(w, "Too many requests, try again later", http.StatusTooManyRequests)
+		return
+	}
+
+	updated = append(updated, now)
+	userRequests[userId] = updated
+	mu.Unlock()
+
+	err = services.CreateRequest(req, jwtToken)
 	if err != nil {
 		http.Error(w, "Failed to create request", http.StatusInternalServerError)
 		return
 	}
 
-	log.Printf("[CreateRequest] Request successfully created")
+	log.Printf("[CreateRequest] Request successfully created for user %d", userId)
 	w.WriteHeader(http.StatusCreated)
 }

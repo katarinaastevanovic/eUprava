@@ -3,10 +3,45 @@ package services
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+
+	"github.com/golang-jwt/jwt/v5"
 )
+
+var JwtKey = []byte(getJwtKey())
+
+func getJwtKey() string {
+	if key := os.Getenv("JWT_SECRET"); key != "" {
+		return key
+	}
+	return "super-secret-key"
+}
+
+func GetUserIdFromJWT(tokenStr string) (uint, error) {
+	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+		return JwtKey, nil
+	})
+
+	if err != nil || !token.Valid {
+		return 0, errors.New("invalid token")
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return 0, errors.New("invalid claims")
+	}
+
+	idFloat, ok := claims["sub"].(float64)
+	if !ok {
+		return 0, errors.New("userID not found in token")
+	}
+
+	return uint(idFloat), nil
+}
 
 type RequestDTO struct {
 	MedicalRecordId        uint   `json:"MedicalRecordId"`

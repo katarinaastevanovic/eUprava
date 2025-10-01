@@ -2,11 +2,19 @@
   <div class="bg-white rounded-lg shadow-md p-8 w-[450px]">
     <h3 class="text-3xl font-extrabold text-gray-800 mb-8 text-center">Create Request</h3>
 
+    <div *ngIf="errorMessage" class="mb-4 text-red-600 font-semibold text-center">
+      {{ errorMessage }}
+    </div>
+
+    <div *ngIf="successMessage" class="mb-4 text-green-600 font-semibold text-center">
+      {{ successMessage }}
+    </div>
+
     <div class="flex flex-col mb-6">
       <label class="mb-2 font-semibold text-gray-700">Doctor</label>
-      <select #doctorSelect required
-              class="w-full border border-teal-400 rounded px-3 py-3 text-black focus:outline-none focus:ring-2 focus:ring-teal-400 transition"
-              [ngClass]="{'text-black': doctorSelect.value}">
+      <select #doctorSelect id="doctorSelect" required
+        class="w-full border border-teal-400 rounded px-3 py-3 text-black focus:outline-none focus:ring-2 focus:ring-teal-400 transition"
+        [ngClass]="{'text-black': doctorSelect.value}">
         <option value="" disabled selected hidden>-- Select Doctor --</option>
         <option *ngFor="let doctor of doctors" [value]="doctor.id">
           {{ doctor.name }} {{ doctor.lastName }}
@@ -16,9 +24,9 @@
 
     <div class="flex flex-col mb-6">
       <label class="mb-2 font-semibold text-gray-700">Type</label>
-      <select #typeSelect required
-              class="w-full border border-teal-400 rounded px-3 py-3 text-black focus:outline-none focus:ring-2 focus:ring-teal-400 transition"
-              [ngClass]="{'text-black': typeSelect.value}">
+      <select #typeSelect id="typeSelect" required
+        class="w-full border border-teal-400 rounded px-3 py-3 text-black focus:outline-none focus:ring-2 focus:ring-teal-400 transition"
+        [ngClass]="{'text-black': typeSelect.value}">
         <option value="" disabled selected hidden>-- Select Type --</option>
         <option value="REGULAR">Regular</option>
         <option value="SPECIALIST">Specialist</option>
@@ -28,12 +36,13 @@
 
     <div class="flex items-center mb-8">
       <input type="checkbox" [(ngModel)]="needMedicalCertificate"
-             class="h-5 w-5 text-green-600 rounded focus:ring-2 focus:ring-green-400 transition">
+        class="h-5 w-5 text-green-600 rounded focus:ring-2 focus:ring-green-400 transition">
       <label class="ml-3 font-semibold text-gray-700">Request Medical Certificate</label>
     </div>
 
-    <button class="w-full bg-teal-500 text-white font-semibold py-3 rounded-lg hover:bg-teal-600 transition-shadow shadow-sm hover:shadow-md"
-            (click)="submitRequestFromSelect(doctorSelect.value, typeSelect.value)">
+    <button
+      class="w-full bg-teal-500 text-white font-semibold py-3 rounded-lg hover:bg-teal-600 transition-shadow shadow-sm hover:shadow-md"
+      (click)="submitRequestFromSelect(doctorSelect.value, typeSelect.value)">
       Submit Request
     </button>
   </div>
