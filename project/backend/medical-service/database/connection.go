@@ -27,6 +27,7 @@ func Connect() {
 		&models.Request{},
 		&models.Examination{},
 		&models.MedicalCertificate{},
+		&models.Notification{},
 	)
 	if err != nil {
 		log.Fatal("Failed to migrate database: ", err)

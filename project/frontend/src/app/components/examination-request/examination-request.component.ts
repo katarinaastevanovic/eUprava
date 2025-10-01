@@ -14,7 +14,9 @@ export class ExaminationRequestComponent implements OnInit {
   requests: Request[] = [];
   doctors: Doctor[] = [];
   patientId: number;
-  needMedicalCertificate: boolean = false; 
+  needMedicalCertificate: boolean = false;
+  errorMessage: string = '';
+  successMessage: string = '';
 
   constructor(private requestService: ExaminationRequestService) {
     this.patientId = this.getUserIdFromToken();
@@ -35,29 +37,32 @@ export class ExaminationRequestComponent implements OnInit {
 
   loadDoctors() {
     this.requestService.getDoctors().subscribe(
-      (res: any[]) => { 
-        this.doctors = res.map((d: any) => ({ 
+      (res: any[]) => {
+        this.doctors = res.map((d: any) => ({
           id: d.ID,
           name: d.Name,
           lastName: d.LastName,
           role: d.Role,
           email: d.Email
         }));
-        console.log('Doctors loaded:', this.doctors);
       },
       err => console.error(err)
     );
   }
 
   submitRequestFromSelect(doctorIdString: string, typeString: string) {
-    const doctorId = +doctorIdString; 
+    const doctorId = +doctorIdString;
     const type = typeString as 'REGULAR' | 'SPECIALIST' | 'URGENT';
     this.submitRequest(doctorId, type, this.needMedicalCertificate);
   }
 
   submitRequest(doctorId: number, type: 'REGULAR' | 'SPECIALIST' | 'URGENT', needCertificate: boolean) {
+    this.errorMessage = '';
+    this.successMessage = '';
+
     if (!doctorId || !type) {
-      alert('Please select doctor and type');
+      this.errorMessage = 'Please select doctor and type';
+      setTimeout(() => this.errorMessage = '', 5000);
       return;
     }
 
@@ -65,22 +70,34 @@ export class ExaminationRequestComponent implements OnInit {
       medicalRecordId: this.patientId,
       doctorId,
       type,
-      needMedicalCertificate: needCertificate 
+      needMedicalCertificate: needCertificate
     };
-
-    console.log("Submitting request payload:", request);
 
     this.requestService.createRequest(request).subscribe(
       res => {
-        console.log("Response from backend:", res);
-        alert('Request created!');
+        this.successMessage = 'Request successfully created!';
+
+        setTimeout(() => this.successMessage = '', 2000);
+
+        const doctorSelect = (document.querySelector('#doctorSelect') as HTMLSelectElement);
+        const typeSelect = (document.querySelector('#typeSelect') as HTMLSelectElement);
+        if (doctorSelect) doctorSelect.value = '';
+        if (typeSelect) typeSelect.value = '';
+        this.needMedicalCertificate = false;
+
       },
       err => {
-        console.error("Error creating request:", err);
-        if (err.error) {
-          console.error("Backend error body:", err.error);
+        if (err.status === 429) {
+          this.errorMessage = 'Too many requests! Please wait a minute before trying again.';
+        } else if (err.error) {
+          this.errorMessage = 'Error: ' + err.error;
+        } else {
+          this.errorMessage = 'An unexpected error occurred.';
         }
+
+        setTimeout(() => this.errorMessage = '', 5000);
       }
     );
   }
 }
+
