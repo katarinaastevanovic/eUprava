@@ -5,6 +5,36 @@ import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validatio
 import { Observable, of, map, catchError } from 'rxjs';
 import { Router } from '@angular/router';
 
+function umcnValidator(control: AbstractControl): ValidationErrors | null {
+  const value = control.value;
+
+  if (!value || !/^\d{13}$/.test(value)) {
+    return { invalidFormat: true };
+  }
+
+  const day = parseInt(value.substring(0, 2), 10);
+  const month = parseInt(value.substring(2, 4), 10);
+  let year = parseInt(value.substring(4, 7), 10);
+
+  if (year >= 900) {
+    year = 1000 + year; 
+  } else {
+    year = 2000 + year; 
+  }
+
+  const testDate = new Date(year, month - 1, day);
+  if (
+    testDate.getDate() !== day ||
+    testDate.getMonth() + 1 !== month ||
+    testDate.getFullYear() !== year
+  ) {
+    return { invalidDate: true };
+  }
+
+  return null;
+}
+
+
 @Component({
   selector: 'app-register',
   standalone: true,
@@ -16,7 +46,7 @@ export class RegisterComponent {
 
   constructor(private fb: FormBuilder, private http: HttpClient, private router: Router) {
     this.registerForm = this.fb.group({
-      umcn: ['', [Validators.required, Validators.pattern(/^[0-9]{13}$/)]],
+      umcn: ['', [Validators.required, umcnValidator]],
       name: ['', [Validators.required, Validators.pattern(/^[A-Z][a-z]+$/)]],
       lastName: ['', [Validators.required, Validators.pattern(/^[A-Z][a-z]+$/)]],
       email: ['', [Validators.required, Validators.email]],
@@ -79,5 +109,7 @@ export class RegisterComponent {
     this.registerForm.markAllAsTouched();
   }
 }
+
+
 
 }
