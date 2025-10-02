@@ -30,6 +30,9 @@ func main() {
 	schoolService := services.NewSchoolService(db)
 	schoolHandler := handlers.NewSchoolHandler(schoolService)
 
+	gradeService := services.NewGradeService(db)
+	gradeHandler := handlers.NewGradeHandler(gradeService)
+
 	router := mux.NewRouter()
 	router.HandleFunc("/students/{id}/absences", schoolHandler.GetStudentAbsences).Methods("GET")
 	router.HandleFunc("/absences/{id}/type", schoolHandler.UpdateAbsenceType).Methods("PUT")
@@ -47,6 +50,7 @@ func main() {
 	router.HandleFunc("/api/teachers/user/{userId}", schoolHandler.GetTeacherByUserIDHandler).Methods("GET")
 	router.HandleFunc("/api/classes/{classId}/students/search", schoolHandler.SearchStudentsHandler).Methods("GET")
 	router.HandleFunc("/students/{userId}/has-certificate", schoolHandler.CheckStudentMedicalCertificate).Methods("GET")
+	router.HandleFunc("/api/grades", gradeHandler.CreateGrade).Methods("POST")
 
 	handler := corsMiddleware(router)
 

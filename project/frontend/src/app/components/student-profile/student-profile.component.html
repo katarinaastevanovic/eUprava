@@ -27,6 +27,11 @@
           </div>
         </div>
       </div>
+      <button class="mt-4 px-4 py-2 bg-sky-600 text-white rounded hover:bg-sky-700 w-full"
+        (click)="showGradeModal = true">
+        + Add Grade
+      </button>
+
     </div>
 
 
@@ -122,5 +127,27 @@
 
       </div>
     </div>
+  </div>
+</div>
+
+<!-- ✅ Modal za dodavanje ocene -->
+<div *ngIf="showGradeModal" class="fixed inset-0 backdrop-blur-sm bg-white/10 flex items-center justify-center z-50">
+  <div class="bg-white p-6 rounded-lg shadow-lg w-96 relative">
+    <button class="absolute top-2 right-3 text-gray-500 hover:text-gray-800" (click)="showGradeModal = false">
+      ✖
+    </button>
+
+    <h3 class="text-lg font-semibold mb-4 text-sky-700">Add New Grade</h3>
+
+    <label class="block text-sm font-medium mb-2">Select grade (1 - 5)</label>
+    <select [(ngModel)]="selectedGradeValue"
+      class="w-full border rounded p-2 mb-4 focus:outline-none focus:ring focus:ring-sky-300">
+      <option [ngValue]="null" disabled>Select grade</option>
+      <option *ngFor="let v of [1, 2, 3, 4, 5]" [value]="v">{{ v }}</option>
+    </select>
+
+    <button (click)="addGrade()" class="w-full bg-sky-600 text-white py-2 rounded hover:bg-sky-700">
+      Confirm
+    </button>
   </div>
 </div>

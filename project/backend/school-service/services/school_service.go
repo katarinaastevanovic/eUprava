@@ -476,3 +476,18 @@ func (s *SchoolService) CheckStudentCertificate(userId uint, token string) (bool
 
 	return certResp.HasCertificate, nil
 }
+func (s *SchoolService) CreateGrade(value int, studentID, subjectID, teacherID uint) (*models.Grade, error) {
+	grade := models.Grade{
+		Value:     value,
+		Date:      time.Now(),
+		StudentID: studentID,
+		SubjectID: subjectID,
+		TeacherID: teacherID,
+	}
+
+	if err := s.DB.Create(&grade).Error; err != nil {
+		return nil, err
+	}
+
+	return &grade, nil
+}

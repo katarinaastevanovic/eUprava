@@ -23,6 +23,8 @@ export class StudentProfileComponent implements OnInit {
   gradesResponse: GradesResponse | null = null;
   singleAverage: number | null = null;
   certificateResult: boolean | null = null;
+  showGradeModal = false;
+  selectedGradeValue: number | null = null;
   loading = false;
   error = '';
 
@@ -173,6 +175,34 @@ export class StudentProfileComponent implements OnInit {
   });
 }
 
+addGrade() {
+  if (!this.selectedGradeValue || !this.gradesResponse) {
+    this.error = "Please select a grade.";
+    return;
+  }
+
+  const payload = {
+    value: Number(this.selectedGradeValue), 
+    student_id: Number(this.gradesResponse.student_id),
+    subject_id: Number(this.gradesResponse.subject_id),
+    teacher_id: Number(this.gradesResponse.teacher_id)
+  };
+
+  console.log("Šaljem payload:", payload);
+
+  this.userService.createGrade(payload).subscribe({
+    next: (res) => {
+      console.log("Grade created:", res);
+      this.showGradeModal = false;
+      this.selectedGradeValue = null;
+      this.loadGrades(payload.student_id, payload.subject_id, payload.teacher_id);
+    },
+    error: (err) => {
+      console.error("Greška pri dodavanju ocene:", err);
+      this.error = "Failed to add grade";
+    }
+  });
+}
 
 
 }

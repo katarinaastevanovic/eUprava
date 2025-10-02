@@ -183,6 +183,9 @@ checkStudentCertificate(userId: number, token: string) {
   );
 }
 
+createGrade(payload: { value: number; student_id: number; subject_id: number; teacher_id: number }) {
+  return this.http.post(`${environment.schoolApiBaseUrl}/api/grades`, payload);
+}
 
 
 }
