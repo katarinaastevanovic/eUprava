@@ -440,3 +440,39 @@ func (s *SchoolService) SearchStudentsByName(classID uint, query string) ([]Stud
 
 	return result, nil
 }
+
+type HasCertificateResponse struct {
+	UserId         uint `json:"userId"`
+	HasCertificate bool `json:"hasCertificate"`
+}
+
+func (s *SchoolService) CheckStudentCertificate(userId uint, token string) (bool, error) {
+	url := fmt.Sprintf("http://medical-service:8082/patients/%d/has-certificate", userId)
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return false, err
+	}
+
+	// Dodaj JWT token ako je potreban
+	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return false, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return false, fmt.Errorf("medical-service returned status: %d", resp.StatusCode)
+	}
+
+	var certResp HasCertificateResponse
+	if err := json.NewDecoder(resp.Body).Decode(&certResp); err != nil {
+		return false, err
+	}
+
+	return certResp.HasCertificate, nil
+}

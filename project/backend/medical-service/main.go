@@ -5,6 +5,7 @@ import (
 	"medical-service/database"
 	"medical-service/handlers"
 	"medical-service/middleware"
+	"medical-service/services"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -12,6 +13,9 @@ import (
 
 func main() {
 	database.Connect()
+
+	certService := services.NewCertificateService(database.DB)
+	certHandler := handlers.NewPatientHandler(certService)
 
 	r := mux.NewRouter()
 
@@ -48,6 +52,7 @@ func main() {
 	serviceRouter.Use(middleware.JWTAuth)
 	serviceRouter.HandleFunc("/patients", handlers.CreatePatientHandler).Methods("POST")
 	serviceRouter.HandleFunc("/doctors", handlers.CreateDoctorHandler).Methods("POST")
+	serviceRouter.HandleFunc("/patients/{userId}/has-certificate", certHandler.HasCertificateHandler).Methods("GET")
 
 	handler := corsMiddleware(r)
 

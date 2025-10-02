@@ -6,6 +6,7 @@ import (
 	"school-service/models"
 	"school-service/services"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -497,4 +498,36 @@ func (h *SchoolHandler) SearchStudentsHandler(w http.ResponseWriter, r *http.Req
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(students)
+}
+
+func (h *SchoolHandler) CheckStudentMedicalCertificate(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userIdStr := vars["userId"]
+
+	userId, err := strconv.Atoi(userIdStr)
+	if err != nil {
+		http.Error(w, "invalid userId", http.StatusBadRequest)
+		return
+	}
+
+	// Uzmi Authorization header od profesora koji šalje zahtev
+	token := r.Header.Get("Authorization")
+	if token != "" {
+		// Ako stiže u formatu "Bearer xyz", skini prefix da ne dupliraš
+		token = strings.TrimPrefix(token, "Bearer ")
+	}
+
+	hasCert, err := h.Service.CheckStudentCertificate(uint(userId), token)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	resp := map[string]interface{}{
+		"userId":         userId,
+		"hasCertificate": hasCert,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(resp)
 }

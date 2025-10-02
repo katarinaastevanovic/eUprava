@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Auth, signInWithPopup, GoogleAuthProvider, signOut } from '@angular/fire/auth';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { tap } from 'rxjs/operators';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -38,9 +39,14 @@ export class AuthService {
     return this.http.post(`${this.apiGatewayUrl}/complete-profile`, profile);
   }
 
-  loginWithEmail(email: string, password: string) {
-    return this.http.post(`${this.apiGatewayUrl}/login`, { email, password });
-  }
+loginWithEmail(email: string, password: string) {
+  return this.http.post<{ token: string }>(`${this.apiGatewayUrl}/login`, { email, password })
+    .pipe(
+      tap(res => {
+        localStorage.setItem('jwt', res.token); 
+      })
+    );
+}
 
   async logout(): Promise<void> {
   try {
@@ -52,5 +58,9 @@ export class AuthService {
   } catch (err) {
     console.error('Firebase logout error', err);
   }
+}
+
+getToken(): string | null {
+  return localStorage.getItem('jwt');
 }
 }

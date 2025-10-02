@@ -11,9 +11,24 @@
           <h4 class="text-xl font-semibold">{{ s.name }} {{ s.last_name }}</h4>
           <p class="text-gray-600">Year</p>
           <p class="text-gray-400 text-sm">Class</p>
+
+          <button class="mt-4 px-4 py-2 bg-sky-600 text-white rounded hover:bg-sky-700" (click)="checkCertificate()">
+            Check Certificate
+          </button>
+
+          <!-- ✅ Rezultat provere -->
+          <div *ngIf="certificateResult !== null" class="mt-2">
+            <span *ngIf="certificateResult" class="text-green-600 font-medium">
+              ✅ Student has a certificate
+            </span>
+            <span *ngIf="certificateResult === false" class="text-red-600 font-medium">
+              ❌ Student has no certificate
+            </span>
+          </div>
         </div>
       </div>
     </div>
+
 
     <!-- Desna kolona -->
     <div class="md:col-span-2 space-y-6">

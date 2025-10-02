@@ -174,4 +174,15 @@ searchStudents(classId: number, query: string): Observable<StudentDTO[]> {
   );
 }
 
+
+
+checkStudentCertificate(userId: number, token: string) {
+  return this.http.get<{ hasCertificate: boolean }>(
+    `${environment.schoolApiBaseUrl}/students/${userId}/has-certificate`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+}
+
+
+
 }

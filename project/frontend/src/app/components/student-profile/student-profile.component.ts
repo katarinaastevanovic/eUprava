@@ -4,6 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { UserService, User, Absence, GradesResponse } from '../../services/user/user.service';
+import { AuthService } from '../../services/auth/auth.service';
 
 @Component({
   selector: 'app-student-profile',
@@ -14,12 +15,14 @@ import { UserService, User, Absence, GradesResponse } from '../../services/user/
 })
 export class StudentProfileComponent implements OnInit {
   private userService = inject(UserService);
+  private authService = inject(AuthService);
   private route = inject(ActivatedRoute);
 
   student: User | null = null;
   absences: Absence[] = [];
   gradesResponse: GradesResponse | null = null;
   singleAverage: number | null = null;
+  certificateResult: boolean | null = null;
   loading = false;
   error = '';
 
@@ -31,13 +34,10 @@ export class StudentProfileComponent implements OnInit {
       this.loadStudent(routeStudentId);
       this.loadAbsences(routeStudentId);
 
-      // Dohvati ulogovanog korisnika
       this.userService.getUserProfile().subscribe({
         next: (user) => {
           console.log("Ulogovani korisnik:", user);
 
-          // Ako je korisnik nastavnik, dohvatimo njegov teacherId
-          // Ako je korisnik nastavnik, dohvatimo njegov teacherId
           this.userService.getTeacherByUserId(user.id).subscribe({
             next: (teacher: any) => {
               console.log("Teacher pronađen:", teacher);
@@ -144,5 +144,36 @@ export class StudentProfileComponent implements OnInit {
       }
     });
   }
+
+ checkCertificate() {
+  if (!this.student) {
+    this.error = "Nema podataka o studentu";
+    return;
+  }
+
+  const routeStudentId = Number(this.route.snapshot.paramMap.get('id'));
+  console.log("Route student id:", routeStudentId);
+
+  const token = this.authService.getToken();
+  if (!token) {  // ❌ proveravamo da li postoji token
+    this.error = "Niste ulogovani!";
+    return;
+  }
+
+  this.userService.checkStudentCertificate(routeStudentId, token).subscribe({
+    next: (res) => {
+      console.log("Certificate check response:", res);
+      this.certificateResult = res.hasCertificate;
+    },
+    error: (err) => {
+      console.error("Greška pri proveri sertifikata", err);
+      this.error = "Failed to check certificate";
+      this.certificateResult = null;
+    }
+  });
+}
+
+
+
 }
 
