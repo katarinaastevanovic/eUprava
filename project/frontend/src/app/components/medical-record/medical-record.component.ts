@@ -58,33 +58,52 @@ private isFullMedicalRecord(obj: any): obj is FullMedicalRecord {
   }
 
   getRecord() {
-    this.loading = true;
-    this.error = '';
-    this.success = '';
+  this.loading = true;
+  this.error = '';
+  this.success = '';
 
-    this.medicalRecordService.getFullRecord(this.userId).subscribe({
-      next: (data) => {
-        console.log('Raw data from backend:', data);
-        if (this.isFullMedicalRecord(data)) {
-          this.record = data;
-          this.allergies = data.allergies;
-          this.chronicDiseases = data.chronicDiseases;
-        } else {
-          this.error = 'Invalid medical record type';
-          console.log('Backend response does not match FullMedicalRecord');
-        }
-        this.loading = false;
-      },
-      error: (err) => {
-        if (err.status === 404) {
-          this.record = null;
-        } else {
-          this.error = 'Failed to fetch medical record';
-        }
-        this.loading = false;
+  this.medicalRecordService.getFullRecord(this.userId).subscribe({
+    next: (data) => {
+      console.log('Raw data from backend:', data);
+
+      if (this.isFullMedicalRecord(data)) {
+        const mappedExaminations = data.examinations?.map(exam => ({
+          CreatedAt: exam.CreatedAt,
+          Diagnosis: exam.diagnosis,
+          Therapy: exam.therapy,
+          Note: exam.note,
+          ID: exam.ID,
+          medicalRecordId: exam.medicalRecordId,
+          requestId: exam.requestId,
+          DeletedAt: exam.DeletedAt,
+          UpdatedAt: exam.UpdatedAt
+        })) || [];
+
+        this.record = {
+          ...data,
+          examinations: mappedExaminations
+        };
+
+        this.allergies = data.allergies;
+        this.chronicDiseases = data.chronicDiseases;
+      } else {
+        this.error = 'Invalid medical record type';
+        console.log('Backend response does not match FullMedicalRecord');
       }
-    });
-  }
+
+      this.loading = false;
+    },
+    error: (err) => {
+      if (err.status === 404) {
+        this.record = null;
+      } else {
+        this.error = 'Failed to fetch medical record';
+      }
+      this.loading = false;
+    }
+  });
+}
+
 
   createRecord() {
     this.loading = true;

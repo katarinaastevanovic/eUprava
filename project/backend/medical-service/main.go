@@ -47,6 +47,8 @@ func main() {
 	doctorRouter.HandleFunc("/requests/{requestId}", handlers.GetRequestById).Methods("GET")
 	doctorRouter.HandleFunc("/certificates", handlers.CreateMedicalCertificateHandler).Methods("POST")
 	doctorRouter.HandleFunc("/medical-records/{medicalRecordId}", handlers.GetFullMedicalRecordById).Methods("GET")
+	doctorRouter.HandleFunc("/notifications/{userId}", handlers.GetNotificationsByUser).Methods("GET")
+	doctorRouter.HandleFunc("/notifications/{userId}/{notifId}/read", handlers.MarkNotificationAsRead).Methods("PATCH")
 
 	serviceRouter := r.PathPrefix("/").Subrouter()
 	serviceRouter.Use(middleware.JWTAuth)

@@ -188,6 +188,14 @@
                     </ng-template>
 
                 </div>
+
+                <div class="md:col-span-2 flex justify-center mt-6" *ngIf="user?.role === 'STUDENT'">
+                    <a class="inline-block bg-teal-500 text-white px-6 py-3 rounded-lg hover:bg-teal-600 transition duration-200 shadow-md"
+                        [routerLink]="['/create-request']">
+                        Send Examination Request
+                    </a>
+                </div>
+
             </div>
             <!-- Teacher view -->
             <div *ngIf="user?.role === 'TEACHER'" class="md:col-span-3 mt-10">

@@ -1,25 +1,34 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
+import { FormsModule } from '@angular/forms';
 import { ExaminationRequestService, RequestWithStudent } from '../../services/examination-request/examination-request.service';
 
 @Component({
   selector: 'app-doctor-requests',
   standalone: true,
-  imports: [CommonModule, HttpClientModule],
+  imports: [CommonModule, HttpClientModule, FormsModule],
   templateUrl: './doctor-request.component.html',
 })
 export class DoctorRequestsComponent implements OnInit {
   requests: RequestWithStudent[] = [];
   doctorId: number = 0;
 
-  constructor(private requestService: ExaminationRequestService) {}
+  currentPage = 1;
+  totalPages = 1;
+  pageSize = 10;
+  searchTerm = '';
+  sortPending = false;
+
+  statusFilter = '';
+  typeFilter = '';
+  typesOfExamination: string[] = ['REGULAR', 'SPECIALIST', 'URGENT'];
+
+  constructor(private requestService: ExaminationRequestService) { }
 
   ngOnInit() {
     this.doctorId = this.getUserIdFromToken();
-    if (this.doctorId) {
-      this.loadRequests(); 
-    }
+    if (this.doctorId) this.loadRequests();
   }
 
   getUserIdFromToken(): number {
@@ -31,33 +40,58 @@ export class DoctorRequestsComponent implements OnInit {
     return Number(decoded.sub) || 0;
   }
 
-  loadRequests() {
-    this.requestService.getRequestsByDoctor(this.doctorId).subscribe(
-      (res: RequestWithStudent[]) => {
-        console.log('Requests with student names:', res);
-        this.requests = res;
-      },
-      err => console.error('Failed to load requests:', err)
-    );
+  loadRequests(page: number = 1) {
+    this.currentPage = page;
+    let sortParam = this.sortPending ? 'requestedFirst' : '';
+
+    console.log('Loading requests:', {
+      page,
+      sortParam,
+      search: this.searchTerm,
+      status: this.statusFilter,
+      type: this.typeFilter
+    });
+
+    this.requestService.getRequestsByDoctorPaginated(
+      this.doctorId,
+      page,
+      this.pageSize,
+      this.searchTerm,
+      this.statusFilter,
+      this.typeFilter,
+      sortParam
+    ).subscribe(res => {
+      this.requests = res.requests;
+      this.totalPages = res.totalPages;
+    }, err => console.error(err));
+  }
+
+
+  onSearch() {
+    this.loadRequests(1);
+  }
+
+  onFilterChange() {
+    this.loadRequests(1);
+  }
+
+  prevPage() {
+    if (this.currentPage > 1) this.loadRequests(this.currentPage - 1);
+  }
+
+  nextPage() {
+    if (this.currentPage < this.totalPages) this.loadRequests(this.currentPage + 1);
+  }
+
+  goToPage(page: number) {
+    this.loadRequests(page);
   }
 
   approveRequest(requestId: number) {
-    this.requestService.approveRequest(requestId).subscribe(
-      res => {
-        console.log('Request approved:', res);
-        this.loadRequests();
-      },
-      err => console.error(err)
-    );
+    this.requestService.approveRequest(requestId).subscribe(() => this.loadRequests(this.currentPage));
   }
 
   rejectRequest(requestId: number) {
-    this.requestService.rejectRequest(requestId).subscribe(
-      res => {
-        console.log('Request rejected:', res);
-        this.loadRequests();
-      },
-      err => console.error(err)
-    );
+    this.requestService.rejectRequest(requestId).subscribe(() => this.loadRequests(this.currentPage));
   }
 }

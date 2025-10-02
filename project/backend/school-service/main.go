@@ -53,6 +53,10 @@ func main() {
 	router.HandleFunc("/students/{userId}/has-certificate", schoolHandler.CheckStudentMedicalCertificate).Methods("GET")
 	router.HandleFunc("/api/grades", gradeHandler.CreateGrade).Methods("POST")
 	router.HandleFunc("/students/{id}/absences/stats", schoolHandler.GetStudentAbsenceStats).Methods("GET")
+	router.HandleFunc("/requests", handlers.CreateRequest).Methods("POST")
+	router.HandleFunc("/notifications", handlers.ReceiveNotification).Methods("POST")
+	router.HandleFunc("/notifications/{studentID}", handlers.GetNotificationsForStudent).Methods("GET")
+	router.HandleFunc("/users/{userID}/notifications/{notifID}/read", handlers.MarkNotificationReadHandler).Methods("PUT")
 
 	handler := corsMiddleware(router)
 
