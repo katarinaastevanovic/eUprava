@@ -121,6 +121,29 @@
                     <ng-template #noAbsences>
                         <p class="text-gray-500 text-sm">No absences found for this student.</p>
                     </ng-template>
+
+                    <!-- Dugme za prikaz/skrivanje -->
+                    <div class="mt-4">
+                        <button (click)="toggleAbsenceStats()"
+                            class="px-3 py-1 bg-sky-600 text-white rounded hover:bg-sky-700 transition">
+                            {{ showAbsenceStats ? 'Hide Summary' : 'Show Summary' }}
+                        </button>
+                    </div>
+
+                    <!-- Rezime statistike -->
+                    <div *ngIf="showAbsenceStats && absenceStats" class="mt-4 bg-gray-50 rounded-lg p-4 text-sm">
+                        <h6 class="font-semibold mb-2 text-sky-700">Absence Summary</h6>
+                        <ul class="space-y-1">
+                            <li>Total: <span class="font-medium">{{ absenceStats.total }}</span></li>
+                            <li class="text-green-700">Excused: <span class="font-medium">{{ absenceStats.excused
+                                    }}</span></li>
+                            <li class="text-red-700">Unexcused: <span class="font-medium">{{ absenceStats.unexcused
+                                    }}</span></li>
+                            <li class="text-yellow-700">Pending: <span class="font-medium">{{ absenceStats.pending
+                                    }}</span></li>
+                        </ul>
+                    </div>
+
                 </div>
 
                 <div class="bg-white rounded-lg shadow p-6">
@@ -128,7 +151,7 @@
                         Grades ({{ grades?.length || 0 }})
                     </h6>
 
-                    <div class="space-y-4 max-h-60 overflow-y-auto"  *ngIf="grades && grades.length > 0; else noGrades">
+                    <div class="space-y-4 max-h-60 overflow-y-auto" *ngIf="grades && grades.length > 0; else noGrades">
                         <div *ngFor="let grade of grades">
                             <small class="block font-medium text-gray-700">
                                 {{ grade.subject_name }} {{ grade.value }}

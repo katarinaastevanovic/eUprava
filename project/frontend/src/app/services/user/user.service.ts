@@ -193,4 +193,16 @@ sortStudents(classId: number, order: string): Observable<StudentDTO[]> {
   );
 }
 
+getAbsenceStats(studentId: number): Observable<{ 
+  user_id: number; 
+  total: number; 
+  excused: number; 
+  unexcused: number; 
+  pending: number; 
+}> {
+  return this.http.get<{ user_id: number; total: number; excused: number; unexcused: number; pending: number }>(
+    `${environment.schoolApiBaseUrl}/students/${studentId}/absences/stats`
+  );
+}
+
 }

@@ -18,6 +18,8 @@ export class UserProfileComponent implements OnInit {
 
   user: User | null = null;
   absences: Absence[] = [];
+  absenceStats: { excused: number; unexcused: number; pending: number; total: number } | null = null;
+  showAbsenceStats = false;
   grades: GradeDTO[] | null = null;
   subjectAverages: SubjectAverage[] = [];
   showAverages = false;
@@ -32,40 +34,40 @@ export class UserProfileComponent implements OnInit {
   }
 
   loadUser() {
-  this.loading = true;
-  this.userService.getUserProfile().subscribe({
-    next: (data) => {
-      this.user = data;
-      this.loading = false;
+    this.loading = true;
+    this.userService.getUserProfile().subscribe({
+      next: (data) => {
+        this.user = data;
+        this.loading = false;
 
-      if (data?.role?.toUpperCase() === 'STUDENT' && data?.id) {
-        // ⬇️ absences i dalje koriste userId
-        this.loadAbsences(data.id);
+        if (data?.role?.toUpperCase() === 'STUDENT' && data?.id) {
+          // ⬇️ absences i dalje koriste userId
+          this.loadAbsences(data.id);
 
-        // ⬇️ samo za ocene radimo mapiranje userId → studentId
-        this.userService.getStudentByUserId(data.id).subscribe({
-          next: (studentDto) => {
-            this.studentId = studentDto.id;
-            console.log("Mapiran userId", data.id, "na studentId", this.studentId);
-            this.loadGrades(this.studentId);
-          },
-          error: (err) => {
-            console.error("Greška pri mapiranju userId na studentId", err);
-            this.error = 'Failed to map user to student';
-          }
-        });
+          // ⬇️ samo za ocene radimo mapiranje userId → studentId
+          this.userService.getStudentByUserId(data.id).subscribe({
+            next: (studentDto) => {
+              this.studentId = studentDto.id;
+              console.log("Mapiran userId", data.id, "na studentId", this.studentId);
+              this.loadGrades(this.studentId);
+            },
+            error: (err) => {
+              console.error("Greška pri mapiranju userId na studentId", err);
+              this.error = 'Failed to map user to student';
+            }
+          });
+        }
+
+        if (data?.role?.toUpperCase() === 'TEACHER' && data?.id) {
+          this.loadTeacherClasses(data.id);
+        }
+      },
+      error: (err) => {
+        this.error = 'Failed to load user profile';
+        this.loading = false;
       }
-
-      if (data?.role?.toUpperCase() === 'TEACHER' && data?.id) {
-        this.loadTeacherClasses(data.id);
-      }
-    },
-    error: (err) => {
-      this.error = 'Failed to load user profile';
-      this.loading = false;
-    }
-  });
-}
+    });
+  }
 
 
   loadTeacherClasses(teacherId: number) {
@@ -90,11 +92,27 @@ export class UserProfileComponent implements OnInit {
     this.userService.getStudentAbsences(studentId).subscribe({
       next: (data) => {
         this.absences = data.absences;
+
+        // ⬇️ dodatno učitavanje statistike
+        this.userService.getAbsenceStats(studentId).subscribe({
+          next: (stats) => {
+            this.absenceStats = {
+              total: stats.total,
+              excused: stats.excused,
+              unexcused: stats.unexcused,
+              pending: stats.pending
+            };
+          },
+          error: () => {
+            this.error = 'Failed to load absence stats';
+          }
+        });
       },
       error: () => {
         this.error = 'Failed to load absences';
       }
     });
+
   }
 
   loadGrades(studentId: number) {
@@ -111,20 +129,20 @@ export class UserProfileComponent implements OnInit {
   }
 
   loadSubjectAverages(studentId: number) {
-  this.showAverages = false;
-  this.subjectAverages = [];
-  this.userService.getStudentAveragesPerSubject(studentId).subscribe({
-    next: (res) => {
-      this.subjectAverages = res.subjects;
-      this.showAverages = true; 
-      console.log("Proseci po predmetima:", res.subjects);
-    },
-    error: (err) => {
-      console.error('Greška pri dohvatanju proseka', err);
-      this.error = 'Failed to load averages';
-    }
-  });
-}
+    this.showAverages = false;
+    this.subjectAverages = [];
+    this.userService.getStudentAveragesPerSubject(studentId).subscribe({
+      next: (res) => {
+        this.subjectAverages = res.subjects;
+        this.showAverages = true;
+        console.log("Proseci po predmetima:", res.subjects);
+      },
+      error: (err) => {
+        console.error('Greška pri dohvatanju proseka', err);
+        this.error = 'Failed to load averages';
+      }
+    });
+  }
 
 
 
@@ -139,6 +157,11 @@ export class UserProfileComponent implements OnInit {
       }
     });
   }
+
+  toggleAbsenceStats() {
+  this.showAbsenceStats = !this.showAbsenceStats;
+}
+
 
 }
 

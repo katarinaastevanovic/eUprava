@@ -20,13 +20,6 @@ func NewSchoolHandler(s *services.SchoolService) *SchoolHandler {
 	return &SchoolHandler{Service: s}
 }
 
-type AbsenceResponse struct {
-	ID      uint   `json:"id"`
-	Type    string `json:"type"`
-	Date    string `json:"date"`
-	Subject string `json:"subject"`
-}
-
 type CreateAbsenceRequest struct {
 	Date      time.Time `json:"date"`
 	StudentID uint      `json:"studentId"`
@@ -50,6 +43,13 @@ type ClassDTO struct {
 type TeacherClassesResponse struct {
 	SubjectName string     `json:"subject_name"`
 	Classes     []ClassDTO `json:"classes"`
+}
+
+type AbsenceResponse struct {
+	ID      uint   `json:"id"`
+	Type    string `json:"type"`
+	Date    string `json:"date"`
+	Subject string `json:"subject"`
 }
 
 func (h *SchoolHandler) GetStudentAbsences(w http.ResponseWriter, r *http.Request) {
@@ -555,4 +555,25 @@ func (h *SchoolHandler) CheckStudentMedicalCertificate(w http.ResponseWriter, r 
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp)
+}
+
+func (h *SchoolHandler) GetStudentAbsenceStats(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	idStr := vars["id"]
+
+	userID, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid user ID", http.StatusBadRequest)
+		return
+	}
+
+	stats, err := h.Service.GetAbsenceStatsByUserID(uint(userID))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(stats)
 }

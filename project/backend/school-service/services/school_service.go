@@ -547,3 +547,56 @@ func (s *SchoolService) CheckStudentCertificate(userId uint, token string) (bool
 
 	return certResp.HasCertificate, nil
 }
+
+type AbsenceStatsResponse struct {
+	UserID    uint  `json:"user_id"`
+	Total     int64 `json:"total"`
+	Excused   int64 `json:"excused"`
+	Unexcused int64 `json:"unexcused"`
+	Pending   int64 `json:"pending"`
+}
+
+func (s *SchoolService) GetAbsenceStatsByUserID(userID uint) (*AbsenceStatsResponse, error) {
+	var student models.Student
+	if err := s.DB.Where("user_id = ?", userID).First(&student).Error; err != nil {
+		return nil, err
+	}
+
+	var total, excused, unexcused, pending int64
+
+	// ukupno
+	if err := s.DB.Model(&models.Absence{}).
+		Where("student_id = ?", student.ID).
+		Count(&total).Error; err != nil {
+		return nil, err
+	}
+
+	// excused
+	if err := s.DB.Model(&models.Absence{}).
+		Where("student_id = ? AND type = ?", student.ID, "excused").
+		Count(&excused).Error; err != nil {
+		return nil, err
+	}
+
+	// unexcused
+	if err := s.DB.Model(&models.Absence{}).
+		Where("student_id = ? AND type = ?", student.ID, "unexcused").
+		Count(&unexcused).Error; err != nil {
+		return nil, err
+	}
+
+	// pending
+	if err := s.DB.Model(&models.Absence{}).
+		Where("student_id = ? AND type = ?", student.ID, "pending").
+		Count(&pending).Error; err != nil {
+		return nil, err
+	}
+
+	return &AbsenceStatsResponse{
+		UserID:    userID,
+		Total:     total,
+		Excused:   excused,
+		Unexcused: unexcused,
+		Pending:   pending,
+	}, nil
+}

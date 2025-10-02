@@ -52,6 +52,7 @@ func main() {
 	router.HandleFunc("/api/classes/{classId}/students/sort", schoolHandler.SortStudentsHandler).Methods("GET")
 	router.HandleFunc("/students/{userId}/has-certificate", schoolHandler.CheckStudentMedicalCertificate).Methods("GET")
 	router.HandleFunc("/api/grades", gradeHandler.CreateGrade).Methods("POST")
+	router.HandleFunc("/students/{id}/absences/stats", schoolHandler.GetStudentAbsenceStats).Methods("GET")
 
 	handler := corsMiddleware(router)
 
