@@ -28,6 +28,7 @@ export class ClassroomComponent implements OnInit {
   loading = true;
   teacherSubjectId!: number;
   searchQuery = '';
+  sortOrder: string = 'asc';
 
   constructor(private route: ActivatedRoute, private userService: UserService) {}
 
@@ -128,6 +129,17 @@ onSearch() {
     },
     error: (err) => {
       console.error('Greška pri pretrazi učenika', err);
+    }
+  });
+}
+
+onSort() {
+  this.userService.sortStudents(this.classId, this.sortOrder).subscribe({
+    next: (students) => {
+      this.students = students;
+    },
+    error: (err) => {
+      console.error('Greška pri sortiranju učenika', err);
     }
   });
 }

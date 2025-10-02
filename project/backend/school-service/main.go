@@ -49,6 +49,7 @@ func main() {
 	router.HandleFunc("/students/{studentID}/averages-per-subject", schoolHandler.GetAverageByStudentPerSubjectHandler).Methods("GET")
 	router.HandleFunc("/api/teachers/user/{userId}", schoolHandler.GetTeacherByUserIDHandler).Methods("GET")
 	router.HandleFunc("/api/classes/{classId}/students/search", schoolHandler.SearchStudentsHandler).Methods("GET")
+	router.HandleFunc("/api/classes/{classId}/students/sort", schoolHandler.SortStudentsHandler).Methods("GET")
 	router.HandleFunc("/students/{userId}/has-certificate", schoolHandler.CheckStudentMedicalCertificate).Methods("GET")
 	router.HandleFunc("/api/grades", gradeHandler.CreateGrade).Methods("POST")
 

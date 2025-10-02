@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"os"
 	"school-service/models"
+	"sort"
 	"time"
 
 	"gorm.io/gorm"
@@ -441,6 +442,76 @@ func (s *SchoolService) SearchStudentsByName(classID uint, query string) ([]Stud
 	return result, nil
 }
 
+func (s *SchoolService) SortStudentsByLastName(classID uint, order string) ([]StudentDTO2, error) {
+	// 1. Uzimamo sve studente iz klase
+	var students []models.Student
+	if err := s.DB.Where("class_id = ?", classID).Find(&students).Error; err != nil {
+		return nil, err
+	}
+	if len(students) == 0 {
+		return []StudentDTO2{}, nil
+	}
+
+	// 2. Uzimamo sve user podatke iz AUTH servisa
+	authURL := fmt.Sprintf("%s/api/members/batch", os.Getenv("AUTH_SERVICE_URL"))
+
+	// Napravimo listu svih userID-jeva da pošaljemo
+	var ids []uint
+	for _, st := range students {
+		ids = append(ids, st.UserID)
+	}
+
+	body, _ := json.Marshal(map[string][]uint{"ids": ids})
+	resp, err := http.Post(authURL, "application/json", bytes.NewBuffer(body))
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var members []struct {
+		ID       uint   `json:"id"`
+		Name     string `json:"name"`
+		LastName string `json:"last_name"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&members); err != nil {
+		return nil, err
+	}
+
+	// 3. Mapiramo i formiramo DTO listu
+	memberMap := make(map[uint]struct {
+		Name     string
+		LastName string
+	})
+	for _, m := range members {
+		memberMap[m.ID] = struct {
+			Name     string
+			LastName string
+		}{m.Name, m.LastName}
+	}
+
+	var result []StudentDTO2
+	for _, st := range students {
+		if m, ok := memberMap[st.UserID]; ok {
+			result = append(result, StudentDTO2{
+				ID:       st.ID,
+				UserID:   st.UserID,
+				Name:     m.Name,
+				LastName: m.LastName,
+			})
+		}
+	}
+
+	// 4. Sortiramo po prezimenu
+	sort.Slice(result, func(i, j int) bool {
+		if order == "desc" {
+			return result[i].LastName > result[j].LastName
+		}
+		return result[i].LastName < result[j].LastName
+	})
+
+	return result, nil
+}
+
 type HasCertificateResponse struct {
 	UserId         uint `json:"userId"`
 	HasCertificate bool `json:"hasCertificate"`
@@ -475,19 +546,4 @@ func (s *SchoolService) CheckStudentCertificate(userId uint, token string) (bool
 	}
 
 	return certResp.HasCertificate, nil
-}
-func (s *SchoolService) CreateGrade(value int, studentID, subjectID, teacherID uint) (*models.Grade, error) {
-	grade := models.Grade{
-		Value:     value,
-		Date:      time.Now(),
-		StudentID: studentID,
-		SubjectID: subjectID,
-		TeacherID: teacherID,
-	}
-
-	if err := s.DB.Create(&grade).Error; err != nil {
-		return nil, err
-	}
-
-	return &grade, nil
 }

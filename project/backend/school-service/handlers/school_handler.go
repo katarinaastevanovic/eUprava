@@ -500,6 +500,31 @@ func (h *SchoolHandler) SearchStudentsHandler(w http.ResponseWriter, r *http.Req
 	json.NewEncoder(w).Encode(students)
 }
 
+func (h *SchoolHandler) SortStudentsHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	classIDStr := vars["classId"]
+	classID, err := strconv.Atoi(classIDStr)
+	if err != nil {
+		http.Error(w, "Invalid class ID", http.StatusBadRequest)
+		return
+	}
+
+	order := r.URL.Query().Get("order")
+	if order != "asc" && order != "desc" {
+		order = "asc" // default
+	}
+
+	students, err := h.Service.SortStudentsByLastName(uint(classID), order)
+	if err != nil {
+		http.Error(w, "Failed to sort students: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(students)
+}
+
 func (h *SchoolHandler) CheckStudentMedicalCertificate(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userIdStr := vars["userId"]

@@ -187,5 +187,10 @@ createGrade(payload: { value: number; student_id: number; subject_id: number; te
   return this.http.post(`${environment.schoolApiBaseUrl}/api/grades`, payload);
 }
 
+sortStudents(classId: number, order: string): Observable<StudentDTO[]> {
+  return this.http.get<StudentDTO[]>(
+    `${environment.schoolApiBaseUrl}/api/classes/${classId}/students/sort?order=${order}`
+  );
+}
 
 }
