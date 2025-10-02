@@ -1,80 +1,93 @@
-<div class="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-  <div class="bg-white p-6 rounded-2xl shadow-md w-96 text-center">
-    <h2 class="text-xl font-bold mb-4">Complete your profile</h2>
+<div class="min-h-screen flex items-center justify-center p-6">
+  <form #form="ngForm" (ngSubmit)="complete(form)" class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md space-y-4">
+    <h2 class="text-2xl font-bold text-teal-700 text-center mb-4">Complete your profile</h2>
 
-    <form #form="ngForm" (ngSubmit)="complete(form)" class="flex flex-col space-y-3" novalidate>
-
+    <div>
+      <label class="block mb-1 text-gray-700 font-semibold text-sm">Username</label>
       <input
         [(ngModel)]="username"
         name="username"
         placeholder="Username"
-        class="border rounded-lg px-3 py-2"
+        class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
         required
         #usernameField="ngModel"
       />
-      <div *ngIf="usernameField.invalid && usernameField.touched" class="text-red-500 text-sm">
+      <div *ngIf="usernameField.invalid && usernameField.touched" class="text-red-500 text-xs mt-1">
         Username is required
       </div>
+    </div>
 
-      <input
-        [(ngModel)]="name"
-        name="name"
-        placeholder="Name"
-        class="border rounded-lg px-3 py-2"
-        required
-        #nameField="ngModel"
-      />
-      <div *ngIf="nameField.invalid && nameField.touched" class="text-red-500 text-sm">
-        Name is required
+    <div class="flex space-x-2">
+      <div class="flex-1">
+        <label class="block mb-1 text-gray-700 font-semibold text-sm">First Name</label>
+        <input
+          [(ngModel)]="name"
+          name="name"
+          placeholder="John"
+          class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
+          required
+          #nameField="ngModel"
+        />
+        <div *ngIf="nameField.invalid && nameField.touched" class="text-red-500 text-xs mt-1">
+          Name is required
+        </div>
       </div>
-
-      <input
-        [(ngModel)]="lastName"
-        name="lastName"
-        placeholder="Lastname"
-        class="border rounded-lg px-3 py-2"
-        required
-        #lastNameField="ngModel"
-      />
-      <div *ngIf="lastNameField.invalid && lastNameField.touched" class="text-red-500 text-sm">
-        Lastname is required
+      <div class="flex-1">
+        <label class="block mb-1 text-gray-700 font-semibold text-sm">Last Name</label>
+        <input
+          [(ngModel)]="lastName"
+          name="lastName"
+          placeholder="Doe"
+          class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
+          required
+          #lastNameField="ngModel"
+        />
+        <div *ngIf="lastNameField.invalid && lastNameField.touched" class="text-red-500 text-xs mt-1">
+          Last name is required
+        </div>
       </div>
+    </div>
 
+    <div>
+      <label class="block mb-1 text-gray-700 font-semibold text-sm">UMCN</label>
       <input
         [(ngModel)]="umcn"
         name="umcn"
-        placeholder="UMCN"
-        class="border rounded-lg px-3 py-2"
+        placeholder="13 digits"
+        class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
         required
         #umcnField="ngModel"
       />
-      <div *ngIf="umcnField.invalid && umcnField.touched" class="text-red-500 text-sm">
+      <div *ngIf="umcnField.invalid && umcnField.touched" class="text-red-500 text-xs mt-1">
         UMCN is required
       </div>
+    </div>
 
+    <div>
+      <label class="block mb-1 text-gray-700 font-semibold text-sm">Role</label>
       <select
         [(ngModel)]="role"
         name="role"
-        class="border rounded-lg px-3 py-2"
+        class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
         required
         #roleField="ngModel"
       >
-        <option value="" disabled>Chose role</option>
+        <option value="">-- Select Role --</option>
         <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
       </select>
-      <div *ngIf="roleField.invalid && roleField.touched" class="text-red-500 text-sm">
+      <div *ngIf="roleField.invalid && roleField.touched" class="text-red-500 text-xs mt-1">
         Role is required
       </div>
+    </div>
 
-      <button
-        type="submit"
-        class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg"
-        [disabled]="form.invalid"
-      >
-        Save profile
-      </button>
-    </form>
+    <button
+      type="submit"
+      [disabled]="form.invalid"
+      class="w-full bg-teal-600 text-white font-semibold py-2 rounded-lg hover:bg-teal-700 transition"
+    >
+      Save Profile
+    </button>
 
-    <p *ngIf="error" class="text-red-500 text-sm mt-3">{{ error }}</p>
-  </div>
+    <p *ngIf="error" class="text-red-500 text-sm mt-3 text-center">{{ error }}</p>
+  </form>
 </div>

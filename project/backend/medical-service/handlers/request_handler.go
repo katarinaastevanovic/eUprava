@@ -118,7 +118,7 @@ func GetRequestsByDoctor(w http.ResponseWriter, r *http.Request) {
 	sortParam := r.URL.Query().Get("sort")
 	sortPending := sortParam == "requestedFirst"
 
-	const pageSize = 15
+	const pageSize = 5
 
 	requests, totalPages, err := services.GetRequestsByDoctorWithStudentPaginatedCustomFilters(
 		uint(doctorId),
