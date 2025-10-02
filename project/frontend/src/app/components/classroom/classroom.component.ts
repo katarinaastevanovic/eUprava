@@ -33,32 +33,34 @@ export class ClassroomComponent implements OnInit {
   constructor(private route: ActivatedRoute, private userService: UserService) {}
 
   ngOnInit(): void {
-    this.classId = +this.route.snapshot.paramMap.get('id')!;
+  this.classId = +this.route.snapshot.paramMap.get('id')!;
 
-    this.userService.getUserProfile().subscribe({
-      next: (user) => {
-        this.userService.getTeacherClasses(user.id).subscribe({
-          next: (res) => {
-            if (res.classes.length > 0) {
-              this.teacherSubjectId = res.classes[0].id; 
-              this.loadStudents();
-            } else {
-              console.error('Teacher has no classes assigned');
-              this.loading = false;
-            }
-          },
-          error: (err) => {
-            console.error('Greška pri učitavanju nastavnikovih klasa', err);
-            this.loading = false;
-          }
-        });
-      },
-      error: (err) => {
-        console.error('Greška pri učitavanju profila', err);
-        this.loading = false;
-      }
-    });
-  }
+  this.userService.getUserProfile().subscribe({
+    next: (user) => {
+      // Dohvati teacherDto preko postojeće metode
+      this.userService.getTeacherByUserId2(user.id).subscribe({
+        next: (teacherDto) => {
+          // Mapiramo polja iz backend-a na frontend-friendly
+          const teacherId = teacherDto.ID;
+          const subjectId = teacherDto.SubjectID;
+
+          console.log("Mapiran teacher:", teacherId, "subjectId:", subjectId);
+          this.teacherSubjectId = subjectId;
+
+          this.loadStudents();
+        },
+        error: (err) => {
+          console.error('Greška pri mapiranju userId na teacherId', err);
+          this.loading = false;
+        }
+      });
+    },
+    error: (err) => {
+      console.error('Greška pri učitavanju profila', err);
+      this.loading = false;
+    }
+  });
+}
 
   private loadStudents() {
     this.userService.getStudentsByClass(this.classId).subscribe({

@@ -158,6 +158,16 @@ getTeacherByUserId(userId: number) {
   );
 }
 
+getTeacherByUserId2(userId: number) {
+  return this.http.get<{ 
+    ID: number; 
+    UserID: number; 
+    SubjectID: number; 
+    Title: string; 
+  }>(`${environment.schoolApiBaseUrl}/api/teachers/user/${userId}`);
+}
+
+
 getStudentSubjectTeacherAverage(
   studentId: number,
   subjectId: number,

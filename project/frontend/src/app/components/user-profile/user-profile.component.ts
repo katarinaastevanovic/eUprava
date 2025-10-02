@@ -59,8 +59,24 @@ export class UserProfileComponent implements OnInit {
         }
 
         if (data?.role?.toUpperCase() === 'TEACHER' && data?.id) {
-          this.loadTeacherClasses(data.id);
+          this.userService.getTeacherByUserId2(data.id).subscribe({
+            next: (teacherDto) => {
+              // Mapiramo backend polja na frontend-friendly
+              const teacherId = teacherDto.ID ?? teacherDto.ID;
+              const subjectId = teacherDto.SubjectID ?? teacherDto.SubjectID;
+              console.log("Mapiran userId", data.id, "na teacherId", teacherId, "subjectId", subjectId);
+
+              this.loadTeacherClasses(teacherId);
+              this.teacherSubject = teacherDto.Title ?? ''; // ako želiš i title
+            },
+            error: (err) => {
+              console.error("Greška pri mapiranju userId na teacherId", err);
+              this.error = 'Failed to map user to teacher';
+            }
+          });
         }
+
+
       },
       error: (err) => {
         this.error = 'Failed to load user profile';
@@ -159,8 +175,8 @@ export class UserProfileComponent implements OnInit {
   }
 
   toggleAbsenceStats() {
-  this.showAbsenceStats = !this.showAbsenceStats;
-}
+    this.showAbsenceStats = !this.showAbsenceStats;
+  }
 
 
 }

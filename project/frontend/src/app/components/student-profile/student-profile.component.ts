@@ -34,7 +34,7 @@ export class StudentProfileComponent implements OnInit {
 
     if (routeStudentId) {
       this.loadStudent(routeStudentId);
-      this.loadAbsences(routeStudentId);
+      //this.loadAbsences(routeStudentId);
 
       this.userService.getUserProfile().subscribe({
         next: (user) => {
@@ -55,6 +55,7 @@ export class StudentProfileComponent implements OnInit {
 
                   console.log("Pozivam loadGrades sa:", realStudentId, subjectId, teacherId);
                   this.loadGrades(realStudentId, subjectId, teacherId);
+                  this.loadAbsences(routeStudentId);
                 },
                 error: (err) => {
                   console.error("Greška pri dohvatanju studenta", err);
@@ -93,15 +94,27 @@ export class StudentProfileComponent implements OnInit {
   }
 
   loadAbsences(studentId: number) {
-    this.userService.getStudentAbsences(studentId).subscribe({
-      next: (data) => {
-        this.absences = data.absences;
-      },
-      error: () => {
-        this.error = 'Failed to load absences';
+  this.userService.getStudentAbsences(studentId).subscribe({
+    next: (data) => {
+      const allAbsences = data.absences;
+
+      // ⬇️ filtriraj samo one koji pripadaju predmetu koji predaje nastavnik
+      if (this.gradesResponse?.subject_name) {
+        this.absences = allAbsences.filter(
+          a => a.subject === this.gradesResponse!.subject_name
+        );
+      } else {
+        this.absences = allAbsences;
       }
-    });
-  }
+
+      console.log("Filtrirani izostanci:", this.absences);
+    },
+    error: () => {
+      this.error = 'Failed to load absences';
+    }
+  });
+}
+
 
   loadGrades(studentId: number, subjectId: number, teacherId: number) {
     console.log("Pozivam loadGrades sa:", studentId, subjectId, teacherId);
