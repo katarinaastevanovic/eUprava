@@ -22,7 +22,7 @@ export class ExaminationFormComponent implements OnInit {
     note: ''
   };
 
-  medicalRecord: any; 
+  medicalRecord: any;
 
   constructor(
     private route: ActivatedRoute,
@@ -31,43 +31,43 @@ export class ExaminationFormComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-  this.requestId = Number(this.route.snapshot.paramMap.get('id'));
-  console.log('Request ID from route:', this.requestId);
+    this.requestId = Number(this.route.snapshot.paramMap.get('id'));
+    console.log('Request ID from route:', this.requestId);
 
-  const saved = sessionStorage.getItem(`examination-${this.requestId}`);
-  if (saved) {
-    this.examination = JSON.parse(saved);
-    if (this.examination.medicalRecordId) {
-      this.loadFullMedicalRecord(this.examination.medicalRecordId);
+    const saved = sessionStorage.getItem(`examination-${this.requestId}`);
+    if (saved) {
+      this.examination = JSON.parse(saved);
+      if (this.examination.medicalRecordId) {
+        this.loadFullMedicalRecord(this.examination.medicalRecordId);
+      }
+    } else {
+      this.examination = {
+        requestId: this.requestId,
+        medicalRecordId: 0,
+        diagnosis: '',
+        therapy: '',
+        note: ''
+      };
+
+      this.examService.getMedicalRecordIdByRequest(this.requestId).subscribe({
+        next: recordId => {
+          console.log('MedicalRecordId fetched:', recordId);
+          this.examination.medicalRecordId = recordId;
+          this.loadFullMedicalRecord(recordId);
+        },
+        error: err => console.error('Failed to get medicalRecordId:', err)
+      });
     }
-  } else {
-    this.examination = {
-      requestId: this.requestId,
-      medicalRecordId: 0,
-      diagnosis: '',
-      therapy: '',
-      note: ''
-    };
 
-    this.examService.getMedicalRecordIdByRequest(this.requestId).subscribe({
-      next: recordId => {
-        console.log('MedicalRecordId fetched:', recordId);
-        this.examination.medicalRecordId = recordId;
-        this.loadFullMedicalRecord(recordId);
+    this.examService.getRequestById(this.requestId).subscribe({
+      next: req => {
+        console.log('Request fetched:', req);
+        this.showMedicalCertificateButton = !!req.needMedicalCertificate;
+        console.log('showMedicalCertificateButton value:', this.showMedicalCertificateButton);
       },
-      error: err => console.error('Failed to get medicalRecordId:', err)
+      error: err => console.error('Failed to load request info:', err)
     });
   }
-
-  this.examService.getRequestById(this.requestId).subscribe({
-    next: req => {
-      console.log('Request fetched:', req); // ceo objekat
-      this.showMedicalCertificateButton = !!req.needMedicalCertificate;
-      console.log('showMedicalCertificateButton value:', this.showMedicalCertificateButton);
-    },
-    error: err => console.error('Failed to load request info:', err)
-  });
-}
 
 
   private loadFullMedicalRecord(medicalRecordId: number) {
@@ -82,7 +82,7 @@ export class ExaminationFormComponent implements OnInit {
       next: res => {
         alert('Examination saved successfully!');
         sessionStorage.removeItem(`examination-${this.requestId}`);
-        this.router.navigate(['/approved-requests']);
+        window.location.href = 'http://localhost:4200/approved-requests';
       },
       error: err => {
         console.error('Failed to save examination:', err);

@@ -6,11 +6,40 @@ import (
 	"medical-service/database"
 	"medical-service/models"
 	"net/http"
+	"strings"
 )
 
-func CreateRequest(req *models.Request) error {
-	req.Status = models.REQUESTED
-	return database.DB.Create(req).Error
+func CreateRequest(userId uint, doctorId uint, reqType models.TypeOfExamination, needCert *bool) (*models.Request, error) {
+	record, err := GetMedicalRecordByUserId(userId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get medical record: %w", err)
+	}
+
+	newReq := &models.Request{
+		MedicalRecordId:        record.ID,
+		DoctorId:               doctorId,
+		Type:                   reqType,
+		Status:                 models.REQUESTED,
+		NeedMedicalCertificate: needCert,
+	}
+
+	if err := database.DB.Create(newReq).Error; err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	var patient models.Patient
+	if err := database.DB.First(&patient, record.PatientId).Error; err != nil {
+		fmt.Println("Failed to get patient:", err)
+	}
+
+	studentName := getStudentNameFromAuth(patient.UserId)
+	message := fmt.Sprintf("You have a new examination request from %s. Type: %s.", studentName, reqType)
+
+	if err := CreateNotification(doctorId, message); err != nil {
+		fmt.Println("Failed to create notification:", err)
+	}
+
+	return newReq, nil
 }
 
 func GetRequestsByPatientUser(userId uint) ([]models.Request, error) {
@@ -21,7 +50,11 @@ func GetRequestsByPatientUser(userId uint) ([]models.Request, error) {
 
 	var requests []models.Request
 	err = database.DB.Where("medical_record_id = ?", record.ID).Find(&requests).Error
-	return requests, err
+	if err != nil {
+		return nil, err
+	}
+
+	return requests, nil
 }
 
 func GetMedicalRecordByUserId(userId uint) (*models.MedicalRecord, error) {
@@ -161,4 +194,146 @@ func GetRequestById(requestId uint) (*models.Request, error) {
 		return nil, err
 	}
 	return &req, nil
+}
+
+func GetRequestsByDoctorWithStudentPaginated(doctorId uint, page, pageSize int, status models.TypeOfRequest, search string) ([]RequestWithStudent, int, error) {
+	var requests []models.Request
+	query := database.DB.Where("doctor_id = ?", doctorId)
+	if status != "" {
+		query = query.Where("status = ?", status)
+	}
+	if err := query.Find(&requests).Error; err != nil {
+		return nil, 0, err
+	}
+
+	var filtered []RequestWithStudent
+	for _, req := range requests {
+		var record models.MedicalRecord
+		if err := database.DB.First(&record, req.MedicalRecordId).Error; err != nil {
+			continue
+		}
+
+		var patient models.Patient
+		if err := database.DB.First(&patient, record.PatientId).Error; err != nil {
+			continue
+		}
+
+		studentName := getStudentNameFromAuth(patient.UserId)
+
+		if search != "" && !strings.Contains(strings.ToLower(studentName), strings.ToLower(search)) {
+			continue
+		}
+
+		filtered = append(filtered, RequestWithStudent{
+			ID:              req.ID,
+			MedicalRecordId: req.MedicalRecordId,
+			DoctorId:        req.DoctorId,
+			Type:            req.Type,
+			Status:          req.Status,
+			StudentName:     studentName,
+		})
+	}
+
+	total := len(filtered)
+	start := (page - 1) * pageSize
+	end := start + pageSize
+	if start > total {
+		start = total
+	}
+	if end > total {
+		end = total
+	}
+	paginated := filtered[start:end]
+
+	totalPages := (total + pageSize - 1) / pageSize
+	return paginated, totalPages, nil
+}
+
+func GetRequestsByDoctorWithStudentPaginatedCustomFilters(
+	doctorId uint,
+	page, pageSize int,
+	status string,
+	search string,
+	reqType string,
+	sortPending bool, // flag za globalno sortiranje
+) ([]RequestWithStudent, int, error) {
+
+	var requests []models.Request
+	query := database.DB.Where("doctor_id = ?", doctorId)
+
+	if status != "" {
+		query = query.Where("status = ?", status)
+	}
+
+	if reqType != "" {
+		query = query.Where("type = ?", reqType)
+	}
+
+	if err := query.Find(&requests).Error; err != nil {
+		return nil, 0, err
+	}
+
+	var filtered []RequestWithStudent
+	for _, req := range requests {
+		var record models.MedicalRecord
+		if err := database.DB.First(&record, req.MedicalRecordId).Error; err != nil {
+			continue
+		}
+
+		var patient models.Patient
+		if err := database.DB.First(&patient, record.PatientId).Error; err != nil {
+			continue
+		}
+
+		studentName := getStudentNameFromAuth(patient.UserId)
+
+		if search != "" && !strings.Contains(strings.ToLower(studentName), strings.ToLower(search)) {
+			continue
+		}
+
+		filtered = append(filtered, RequestWithStudent{
+			ID:              req.ID,
+			MedicalRecordId: req.MedicalRecordId,
+			DoctorId:        req.DoctorId,
+			Type:            req.Type,
+			Status:          req.Status,
+			StudentName:     studentName,
+		})
+	}
+
+	if sortPending {
+		filtered = SortRequestsPendingFirst(filtered)
+	}
+
+	total := len(filtered)
+	start := (page - 1) * pageSize
+	end := start + pageSize
+	if start > total {
+		start = total
+	}
+	if end > total {
+		end = total
+	}
+	paginated := filtered[start:end]
+
+	totalPages := (total + pageSize - 1) / pageSize
+	return paginated, totalPages, nil
+}
+
+func SortRequestsPendingFirst(requests []RequestWithStudent) []RequestWithStudent {
+	sorted := make([]RequestWithStudent, len(requests))
+	copy(sorted, requests)
+
+	pending := []RequestWithStudent{}
+	others := []RequestWithStudent{}
+
+	for _, r := range sorted {
+		if r.Status == "REQUESTED" {
+			pending = append(pending, r)
+		} else {
+			others = append(others, r)
+		}
+	}
+
+	return append(pending, others...)
 }

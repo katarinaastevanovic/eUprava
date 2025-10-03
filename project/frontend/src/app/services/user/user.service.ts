@@ -42,7 +42,28 @@ interface StudentDTO {
   numberOfAbsences: number;
   absences: AbsenceDTO[];
 }
+export interface GradeDTO {
+  subject_name: string;
+  value: number;
+  date: string;
+}
+export interface SubjectAverage {
+  subject_id: number;
+  subject_name: string;
+  average: number;
+}
+export interface GradeItem {
+  value: number;
+  date: string;
+}
 
+export interface GradesResponse {
+  student_id: number;
+  subject_id: number;
+  teacher_id: number;
+  subject_name: string;
+  grades: GradeItem[];
+}
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
@@ -107,6 +128,91 @@ createAbsences(studentIds: number[], subjectId: number, date?: string) {
 
 getUserById(id: number) {
   return this.http.get<User>(`${environment.schoolApiBaseUrl}/students/by-user/${id}/profile`);
+}
+
+getStudentGrades(studentId: number): Observable<GradeDTO[]> {
+  return this.http.get<GradeDTO[]>(
+    `${environment.schoolApiBaseUrl}/api/grades/student/${studentId}`
+  );
+}
+
+getStudentAveragesPerSubject(studentId: number): Observable<{ student_id: number; subjects: SubjectAverage[] }> {
+  return this.http.get<{ student_id: number; subjects: SubjectAverage[] }>(
+    `${environment.schoolApiBaseUrl}/students/${studentId}/averages-per-subject`
+  );
+}
+
+getGradesByStudentSubjectAndTeacher(
+  studentId: number,
+  subjectId: number,
+  teacherId: number
+) {
+  return this.http.get<GradesResponse>(
+    `${environment.schoolApiBaseUrl}/api/grades/student/${studentId}/subject/${subjectId}/teacher/${teacherId}`
+  );
+}
+
+getTeacherByUserId(userId: number) {
+  return this.http.get<{ id: number, user_id: number, subject_id: number }>(
+    `${environment.schoolApiBaseUrl}/api/teachers/user/${userId}`
+  );
+}
+
+getTeacherByUserId2(userId: number) {
+  return this.http.get<{ 
+    ID: number; 
+    UserID: number; 
+    SubjectID: number; 
+    Title: string; 
+  }>(`${environment.schoolApiBaseUrl}/api/teachers/user/${userId}`);
+}
+
+
+getStudentSubjectTeacherAverage(
+  studentId: number,
+  subjectId: number,
+  teacherId: number
+): Observable<{ average: number; student_id: number; subject_id: number; teacher_id: number }> {
+  return this.http.get<{ average: number; student_id: number; subject_id: number; teacher_id: number }>(
+    `${environment.schoolApiBaseUrl}/students/${studentId}/subjects/${subjectId}/teachers/${teacherId}/average`
+  );
+}
+
+searchStudents(classId: number, query: string): Observable<StudentDTO[]> {
+  return this.http.get<StudentDTO[]>(
+    `${environment.schoolApiBaseUrl}/api/classes/${classId}/students/search?query=${encodeURIComponent(query)}`
+  );
+}
+
+
+
+checkStudentCertificate(userId: number, token: string) {
+  return this.http.get<{ hasCertificate: boolean }>(
+    `${environment.schoolApiBaseUrl}/students/${userId}/has-certificate`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+}
+
+createGrade(payload: { value: number; student_id: number; subject_id: number; teacher_id: number }) {
+  return this.http.post(`${environment.schoolApiBaseUrl}/api/grades`, payload);
+}
+
+sortStudents(classId: number, order: string): Observable<StudentDTO[]> {
+  return this.http.get<StudentDTO[]>(
+    `${environment.schoolApiBaseUrl}/api/classes/${classId}/students/sort?order=${order}`
+  );
+}
+
+getAbsenceStats(studentId: number): Observable<{ 
+  user_id: number; 
+  total: number; 
+  excused: number; 
+  unexcused: number; 
+  pending: number; 
+}> {
+  return this.http.get<{ user_id: number; total: number; excused: number; unexcused: number; pending: number }>(
+    `${environment.schoolApiBaseUrl}/students/${studentId}/absences/stats`
+  );
 }
 
 }

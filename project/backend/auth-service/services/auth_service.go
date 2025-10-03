@@ -253,3 +253,27 @@ func GetMembersByIDs(ids []uint) ([]MemberResponse, error) {
 	return result, nil
 
 }
+
+func SearchMembers(query string) ([]MemberResponse, error) {
+	var members []models.Member
+
+	search := "%" + query + "%"
+	if err := database.DB.
+		Where("(LOWER(name) LIKE LOWER(?) OR LOWER(last_name) LIKE LOWER(?)) AND role = ?", search, search, "STUDENT").
+		Select("id, name, last_name, email").
+		Find(&members).Error; err != nil {
+		return nil, err
+	}
+
+	result := make([]MemberResponse, len(members))
+	for i, m := range members {
+		result[i] = MemberResponse{
+			ID:       m.ID,
+			Name:     m.Name,
+			LastName: m.LastName,
+			Email:    m.Email,
+		}
+	}
+
+	return result, nil
+}

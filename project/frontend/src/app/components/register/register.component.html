@@ -1,73 +1,98 @@
 <div class="min-h-screen flex items-center justify-center p-6">
-  <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md space-y-4">
-    <h2 class="text-2xl font-bold text-teal-700 text-center mb-4">Register</h2>
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()"
+        class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md space-y-4">
+        <h2 class="text-2xl font-bold text-teal-700 text-center mb-4">Register</h2>
 
-    <div>
-      <label class="block mb-1 text-gray-700 font-semibold text-sm">UMCN</label>
-      <input formControlName="umcn" type="text" placeholder="13 digits" class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"/>
-      <div *ngIf="registerForm.get('umcn')?.invalid && registerForm.get('umcn')?.touched" class="text-red-500 text-xs mt-1">
-        Must contain 13 digits
-      </div>
-    </div>
+        <div>
+            <label class="block mb-1 text-gray-700 font-semibold text-sm">UMCN</label>
+            <input formControlName="umcn" type="text" placeholder="13 digits"
+                class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm" />
 
-    <div class="flex space-x-2">
-      <div class="flex-1">
-        <label class="block mb-1 text-gray-700 font-semibold text-sm">First Name</label>
-        <input formControlName="name" type="text" placeholder="John" class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"/>
-        <div *ngIf="registerForm.get('name')?.invalid && registerForm.get('name')?.touched" class="text-red-500 text-xs mt-1">
-          First name must start with a capital letter
+            <div *ngIf="registerForm.get('umcn')?.touched">
+                <div *ngIf="registerForm.get('umcn')?.hasError('invalidFormat')" class="text-red-500 text-xs mt-1">
+                    Must contain exactly 13 digits
+                </div>
+                <div *ngIf="registerForm.get('umcn')?.hasError('invalidDate')" class="text-red-500 text-xs mt-1">
+                    Invalid date in UMCN
+                </div>
+            </div>
         </div>
-      </div>
-      <div class="flex-1">
-        <label class="block mb-1 text-gray-700 font-semibold text-sm">Last Name</label>
-        <input formControlName="lastName" type="text" placeholder="Doe" class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"/>
-        <div *ngIf="registerForm.get('lastName')?.invalid && registerForm.get('lastName')?.touched" class="text-red-500 text-xs mt-1">
-          Last name must start with a capital letter
+
+
+        <div class="flex space-x-2">
+            <div class="flex-1">
+                <label class="block mb-1 text-gray-700 font-semibold text-sm">First Name</label>
+                <input formControlName="name" type="text" placeholder="John"
+                    class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm" />
+                <div *ngIf="registerForm.get('name')?.invalid && registerForm.get('name')?.touched"
+                    class="text-red-500 text-xs mt-1">
+                    First name must start with a capital letter
+                </div>
+            </div>
+            <div class="flex-1">
+                <label class="block mb-1 text-gray-700 font-semibold text-sm">Last Name</label>
+                <input formControlName="lastName" type="text" placeholder="Doe"
+                    class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm" />
+                <div *ngIf="registerForm.get('lastName')?.invalid && registerForm.get('lastName')?.touched"
+                    class="text-red-500 text-xs mt-1">
+                    Last name must start with a capital letter
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
 
-    <div>
-      <label class="block mb-1 text-gray-700 font-semibold text-sm">Email</label>
-      <input formControlName="email" type="email" placeholder="example@mail.com" class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"/>
-      <div *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched" class="text-red-500 text-xs mt-1">
-        Invalid email format
-      </div>
-    </div>
+        <div>
+            <label class="block mb-1 text-gray-700 font-semibold text-sm">Email</label>
+            <input formControlName="email" type="email" placeholder="example@mail.com"
+                class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm" />
+            <div *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched"
+                class="text-red-500 text-xs mt-1">
+                Invalid email format
+            </div>
+        </div>
 
-    <div>
-      <label class="block mb-1 text-gray-700 font-semibold text-sm">Username</label>
-      <input formControlName="username" type="text" placeholder="Username" class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"/>
-      <div *ngIf="registerForm.get('username')?.hasError('required') && registerForm.get('username')?.touched" class="text-red-500 text-xs mt-1">Username is required</div>
-      <div *ngIf="registerForm.get('username')?.hasError('minlength')" class="text-red-500 text-xs mt-1">Min 4 chars</div>
-      <div *ngIf="registerForm.get('username')?.hasError('maxlength')" class="text-red-500 text-xs mt-1">Max 20 chars</div>
-      <div *ngIf="registerForm.get('username')?.hasError('usernameTaken')" class="text-red-500 text-xs mt-1">Username taken</div>
-    </div>
+        <div>
+            <label class="block mb-1 text-gray-700 font-semibold text-sm">Username</label>
+            <input formControlName="username" type="text" placeholder="Username"
+                class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm" />
+            <div *ngIf="registerForm.get('username')?.hasError('required') && registerForm.get('username')?.touched"
+                class="text-red-500 text-xs mt-1">Username is required</div>
+            <div *ngIf="registerForm.get('username')?.hasError('minlength')" class="text-red-500 text-xs mt-1">Min 4
+                chars</div>
+            <div *ngIf="registerForm.get('username')?.hasError('maxlength')" class="text-red-500 text-xs mt-1">Max 20
+                chars</div>
+            <div *ngIf="registerForm.get('username')?.hasError('usernameTaken')" class="text-red-500 text-xs mt-1">
+                Username taken</div>
+        </div>
 
-    <div>
-      <label class="block mb-1 text-gray-700 font-semibold text-sm">Password</label>
-      <input formControlName="password" type="password" placeholder="8+ chars, upper/lower/digit" class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"/>
-      <div *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched" class="text-red-500 text-xs mt-1">
-        Must be 8+ chars, upper/lower/digit
-      </div>
-    </div>
+        <div>
+            <label class="block mb-1 text-gray-700 font-semibold text-sm">Password</label>
+            <input formControlName="password" type="password" placeholder="8+ chars, upper/lower/digit"
+                class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm" />
+            <div *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched"
+                class="text-red-500 text-xs mt-1">
+                Must be 8+ chars, upper/lower/digit
+            </div>
+        </div>
 
-    <div>
-      <label class="block mb-1 text-gray-700 font-semibold text-sm">Role</label>
-      <select formControlName="role" class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm">
-        <option value="">-- Select --</option>
-        <option value="STUDENT">Student</option>
-        <option value="TEACHER">Teacher</option>
-        <option value="DOCTOR">Doctor</option>
-        <option value="PARENT">Parent</option>
-      </select>
-      <div *ngIf="registerForm.get('role')?.invalid && registerForm.get('role')?.touched" class="text-red-500 text-xs mt-1">
-        You must select a role
-      </div>
-    </div>
+        <div>
+            <label class="block mb-1 text-gray-700 font-semibold text-sm">Role</label>
+            <select formControlName="role"
+                class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm">
+                <option value="">-- Select --</option>
+                <option value="STUDENT">Student</option>
+                <option value="TEACHER">Teacher</option>
+                <option value="DOCTOR">Doctor</option>
+                <option value="PARENT">Parent</option>
+            </select>
+            <div *ngIf="registerForm.get('role')?.invalid && registerForm.get('role')?.touched"
+                class="text-red-500 text-xs mt-1">
+                You must select a role
+            </div>
+        </div>
 
-    <button type="submit" [disabled]="registerForm.invalid" class="w-full bg-teal-600 text-white font-semibold py-2 rounded-lg hover:bg-teal-700  transition">
-      Register
-    </button>
-  </form>
+        <button type="submit" [disabled]="registerForm.invalid"
+            class="w-full bg-teal-600 text-white font-semibold py-2 rounded-lg hover:bg-teal-700  transition">
+            Register
+        </button>
+    </form>
 </div>

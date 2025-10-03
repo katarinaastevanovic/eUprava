@@ -30,6 +30,9 @@ func main() {
 	schoolService := services.NewSchoolService(db)
 	schoolHandler := handlers.NewSchoolHandler(schoolService)
 
+	gradeService := services.NewGradeService(db)
+	gradeHandler := handlers.NewGradeHandler(gradeService)
+
 	router := mux.NewRouter()
 	router.HandleFunc("/students/{id}/absences", schoolHandler.GetStudentAbsences).Methods("GET")
 	router.HandleFunc("/absences/{id}/type", schoolHandler.UpdateAbsenceType).Methods("PUT")
@@ -39,6 +42,21 @@ func main() {
 	router.HandleFunc("/students/{studentID}/subjects/{subjectID}/absences/count", schoolHandler.GetAbsenceCountForSubject).Methods("GET")
 	router.HandleFunc("/students/by-user/{userId}", schoolHandler.GetStudentByUserID).Methods("GET")
 	router.HandleFunc("/students/by-user/{userId}/profile", schoolHandler.GetStudentFullProfile).Methods("GET")
+	router.HandleFunc("/api/grades/student/{studentID}/subject/{subjectID}/teacher/{teacherID}", schoolHandler.GetGradesByStudentSubjectAndTeacherHandler).Methods("GET")
+	router.HandleFunc("/api/grades/student/{studentID}", schoolHandler.GetAllGradesByStudentHandler).Methods("GET")
+	router.HandleFunc("/students/{studentID}/subjects/{subjectID}/teachers/{teacherID}/average", schoolHandler.GetAverageByTeacherAndSubjectHandler).Methods("GET")
+	router.HandleFunc("/students/{studentID}/average", schoolHandler.GetAverageByStudentHandler).Methods("GET")
+	router.HandleFunc("/students/{studentID}/averages-per-subject", schoolHandler.GetAverageByStudentPerSubjectHandler).Methods("GET")
+	router.HandleFunc("/api/teachers/user/{userId}", schoolHandler.GetTeacherByUserIDHandler).Methods("GET")
+	router.HandleFunc("/api/classes/{classId}/students/search", schoolHandler.SearchStudentsHandler).Methods("GET")
+	router.HandleFunc("/api/classes/{classId}/students/sort", schoolHandler.SortStudentsHandler).Methods("GET")
+	router.HandleFunc("/students/{userId}/has-certificate", schoolHandler.CheckStudentMedicalCertificate).Methods("GET")
+	router.HandleFunc("/api/grades", gradeHandler.CreateGrade).Methods("POST")
+	router.HandleFunc("/students/{id}/absences/stats", schoolHandler.GetStudentAbsenceStats).Methods("GET")
+	router.HandleFunc("/requests", handlers.CreateRequest).Methods("POST")
+	router.HandleFunc("/notifications", handlers.ReceiveNotification).Methods("POST")
+	router.HandleFunc("/notifications/{studentID}", handlers.GetNotificationsForStudent).Methods("GET")
+	router.HandleFunc("/users/{userID}/notifications/{notifID}/read", handlers.MarkNotificationReadHandler).Methods("PUT")
 
 	handler := corsMiddleware(router)
 

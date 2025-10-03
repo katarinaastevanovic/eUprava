@@ -6,6 +6,7 @@ import (
 	"school-service/models"
 	"school-service/services"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -17,13 +18,6 @@ type SchoolHandler struct {
 
 func NewSchoolHandler(s *services.SchoolService) *SchoolHandler {
 	return &SchoolHandler{Service: s}
-}
-
-type AbsenceResponse struct {
-	ID      uint   `json:"id"`
-	Type    string `json:"type"`
-	Date    string `json:"date"`
-	Subject string `json:"subject"`
 }
 
 type CreateAbsenceRequest struct {
@@ -49,6 +43,13 @@ type ClassDTO struct {
 type TeacherClassesResponse struct {
 	SubjectName string     `json:"subject_name"`
 	Classes     []ClassDTO `json:"classes"`
+}
+
+type AbsenceResponse struct {
+	ID      uint   `json:"id"`
+	Type    string `json:"type"`
+	Date    string `json:"date"`
+	Subject string `json:"subject"`
 }
 
 func (h *SchoolHandler) GetStudentAbsences(w http.ResponseWriter, r *http.Request) {
@@ -291,4 +292,288 @@ func (h *SchoolHandler) GetStudentFullProfile(w http.ResponseWriter, r *http.Req
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(dto)
+}
+
+type GradeItem struct {
+	Value int       `json:"value"`
+	Date  time.Time `json:"date,omitempty"`
+}
+
+type GradesResponse struct {
+	StudentID   uint        `json:"student_id"`
+	SubjectID   uint        `json:"subject_id"`
+	TeacherID   uint        `json:"teacher_id"`
+	SubjectName string      `json:"subject_name"`
+	Grades      []GradeItem `json:"grades"`
+}
+
+func (h *SchoolHandler) GetGradesByStudentSubjectAndTeacherHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	studentID, err := strconv.Atoi(vars["studentID"])
+	if err != nil {
+		http.Error(w, "Invalid student ID", http.StatusBadRequest)
+		return
+	}
+
+	subjectID, err := strconv.Atoi(vars["subjectID"])
+	if err != nil {
+		http.Error(w, "Invalid subject ID", http.StatusBadRequest)
+		return
+	}
+
+	teacherID, err := strconv.Atoi(vars["teacherID"])
+	if err != nil {
+		http.Error(w, "Invalid teacher ID", http.StatusBadRequest)
+		return
+	}
+
+	grades, err := h.Service.GetGradesByStudentSubjectAndTeacher(uint(studentID), uint(subjectID), uint(teacherID))
+	if err != nil {
+		http.Error(w, "Failed to fetch grades", http.StatusInternalServerError)
+		return
+	}
+
+	var gradeItems []GradeItem
+	for _, g := range grades {
+		gradeItems = append(gradeItems, GradeItem{
+			Value: g.Value,
+			Date:  g.Date,
+		})
+	}
+
+	subjectName := ""
+	if len(grades) > 0 {
+		subjectName = grades[0].Subject.Name
+	}
+
+	response := GradesResponse{
+		StudentID:   uint(studentID),
+		SubjectID:   uint(subjectID),
+		TeacherID:   uint(teacherID),
+		SubjectName: subjectName,
+		Grades:      gradeItems,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
+type StudentGradeResponse struct {
+	SubjectID   uint      `json:"subject_id"`
+	SubjectName string    `json:"subject_name"`
+	Value       int       `json:"value"`
+	Date        time.Time `json:"date,omitempty"`
+}
+
+func (h *SchoolHandler) GetAllGradesByStudentHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	studentID, err := strconv.Atoi(vars["studentID"])
+	if err != nil {
+		http.Error(w, "Invalid student ID", http.StatusBadRequest)
+		return
+	}
+
+	grades, err := h.Service.GetAllGradesByStudent(uint(studentID))
+	if err != nil {
+		http.Error(w, "Failed to fetch grades", http.StatusInternalServerError)
+		return
+	}
+
+	var response []StudentGradeResponse
+	for _, g := range grades {
+		response = append(response, StudentGradeResponse{
+			SubjectID:   g.SubjectID,
+			SubjectName: g.Subject.Name,
+			Value:       g.Value,
+			Date:        g.Date,
+		})
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
+func (h *SchoolHandler) GetAverageByTeacherAndSubjectHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	studentID, _ := strconv.Atoi(vars["studentID"])
+	subjectID, _ := strconv.Atoi(vars["subjectID"])
+	teacherID, _ := strconv.Atoi(vars["teacherID"])
+
+	avg, err := h.Service.GetAverageGradeByTeacherAndSubject(uint(studentID), uint(subjectID), uint(teacherID))
+	if err != nil {
+		http.Error(w, "Failed to fetch average", http.StatusInternalServerError)
+		return
+	}
+
+	resp := map[string]interface{}{
+		"student_id": studentID,
+		"subject_id": subjectID,
+		"teacher_id": teacherID,
+		"average":    avg,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(resp)
+}
+
+func (h *SchoolHandler) GetAverageByStudentHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	studentID, _ := strconv.Atoi(vars["studentID"])
+
+	avg, err := h.Service.GetAverageGradeByStudent(uint(studentID))
+	if err != nil {
+		http.Error(w, "Failed to fetch average", http.StatusInternalServerError)
+		return
+	}
+
+	resp := map[string]interface{}{
+		"student_id": studentID,
+		"average":    avg,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(resp)
+}
+
+func (h *SchoolHandler) GetAverageByStudentPerSubjectHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	studentID, _ := strconv.Atoi(vars["studentID"])
+
+	averages, err := h.Service.GetAverageGradeByStudentPerSubject(uint(studentID))
+	if err != nil {
+		http.Error(w, "Failed to fetch averages", http.StatusInternalServerError)
+		return
+	}
+
+	resp := map[string]interface{}{
+		"student_id": studentID,
+		"subjects":   averages,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(resp)
+}
+
+func (h *SchoolHandler) GetTeacherByUserIDHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userIDStr := vars["userId"]
+	userID, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		http.Error(w, "Invalid user ID", http.StatusBadRequest)
+		return
+	}
+
+	teacher, err := h.Service.GetTeacherByUserID(uint(userID))
+	if err != nil {
+		http.Error(w, "Teacher not found", http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(teacher)
+}
+
+func (h *SchoolHandler) SearchStudentsHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	classIDStr := vars["classId"]
+	classID, err := strconv.Atoi(classIDStr)
+	if err != nil {
+		http.Error(w, "Invalid class ID", http.StatusBadRequest)
+		return
+	}
+
+	query := r.URL.Query().Get("query")
+	if query == "" {
+		http.Error(w, "Query parameter is required", http.StatusBadRequest)
+		return
+	}
+
+	students, err := h.Service.SearchStudentsByName(uint(classID), query)
+	if err != nil {
+		http.Error(w, "Failed to search students: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(students)
+}
+
+func (h *SchoolHandler) SortStudentsHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	classIDStr := vars["classId"]
+	classID, err := strconv.Atoi(classIDStr)
+	if err != nil {
+		http.Error(w, "Invalid class ID", http.StatusBadRequest)
+		return
+	}
+
+	order := r.URL.Query().Get("order")
+	if order != "asc" && order != "desc" {
+		order = "asc" // default
+	}
+
+	students, err := h.Service.SortStudentsByLastName(uint(classID), order)
+	if err != nil {
+		http.Error(w, "Failed to sort students: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(students)
+}
+
+func (h *SchoolHandler) CheckStudentMedicalCertificate(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userIdStr := vars["userId"]
+
+	userId, err := strconv.Atoi(userIdStr)
+	if err != nil {
+		http.Error(w, "invalid userId", http.StatusBadRequest)
+		return
+	}
+
+	// Uzmi Authorization header od profesora koji šalje zahtev
+	token := r.Header.Get("Authorization")
+	if token != "" {
+		// Ako stiže u formatu "Bearer xyz", skini prefix da ne dupliraš
+		token = strings.TrimPrefix(token, "Bearer ")
+	}
+
+	hasCert, err := h.Service.CheckStudentCertificate(uint(userId), token)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	resp := map[string]interface{}{
+		"userId":         userId,
+		"hasCertificate": hasCert,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(resp)
+}
+
+func (h *SchoolHandler) GetStudentAbsenceStats(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	idStr := vars["id"]
+
+	userID, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid user ID", http.StatusBadRequest)
+		return
+	}
+
+	stats, err := h.Service.GetAbsenceStatsByUserID(uint(userID))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(stats)
 }

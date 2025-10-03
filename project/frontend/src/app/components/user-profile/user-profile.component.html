@@ -121,46 +121,81 @@
                     <ng-template #noAbsences>
                         <p class="text-gray-500 text-sm">No absences found for this student.</p>
                     </ng-template>
+
+                    <!-- Dugme za prikaz/skrivanje -->
+                    <div class="mt-4">
+                        <button (click)="toggleAbsenceStats()"
+                            class="px-3 py-1 bg-sky-600 text-white rounded hover:bg-sky-700 transition">
+                            {{ showAbsenceStats ? 'Hide Summary' : 'Show Summary' }}
+                        </button>
+                    </div>
+
+                    <!-- Rezime statistike -->
+                    <div *ngIf="showAbsenceStats && absenceStats" class="mt-4 bg-gray-50 rounded-lg p-4 text-sm">
+                        <h6 class="font-semibold mb-2 text-sky-700">Absence Summary</h6>
+                        <ul class="space-y-1">
+                            <li>Total: <span class="font-medium">{{ absenceStats.total }}</span></li>
+                            <li class="text-green-700">Excused: <span class="font-medium">{{ absenceStats.excused
+                                    }}</span></li>
+                            <li class="text-red-700">Unexcused: <span class="font-medium">{{ absenceStats.unexcused
+                                    }}</span></li>
+                            <li class="text-yellow-700">Pending: <span class="font-medium">{{ absenceStats.pending
+                                    }}</span></li>
+                        </ul>
+                    </div>
+
                 </div>
 
                 <div class="bg-white rounded-lg shadow p-6">
                     <h6 class="font-semibold mb-4 text-sky-600 flex items-center gap-2">
-                        Grades
+                        Grades ({{ grades?.length || 0 }})
                     </h6>
-                    <!-- Ponovljene progress trake -->
-                    <div class="space-y-4">
-                        <div>
-                            <small>Web Design</small>
+
+                    <div class="space-y-4 max-h-60 overflow-y-auto" *ngIf="grades && grades.length > 0; else noGrades">
+                        <div *ngFor="let grade of grades">
+                            <small class="block font-medium text-gray-700">
+                                {{ grade.subject_name }} {{ grade.value }}
+                            </small>
                             <div class="w-full bg-gray-200 h-1.5 rounded">
-                                <div class="bg-blue-600 h-1.5 rounded w-[80%]"></div>
+                                <!-- ovde recimo ocenu možeš pretvoriti u % da puni progress bar -->
+                                <div class="bg-blue-600 h-1.5 rounded" [ngStyle]="{ width: (grade.value * 20) + '%' }">
+                                </div>
                             </div>
-                        </div>
-                        <div>
-                            <small>Website Markup</small>
-                            <div class="w-full bg-gray-200 h-1.5 rounded">
-                                <div class="bg-blue-600 h-1.5 rounded w-[72%]"></div>
-                            </div>
-                        </div>
-                        <div>
-                            <small>One Page</small>
-                            <div class="w-full bg-gray-200 h-1.5 rounded">
-                                <div class="bg-blue-600 h-1.5 rounded w-[89%]"></div>
-                            </div>
-                        </div>
-                        <div>
-                            <small>Mobile Template</small>
-                            <div class="w-full bg-gray-200 h-1.5 rounded">
-                                <div class="bg-blue-600 h-1.5 rounded w-[55%]"></div>
-                            </div>
-                        </div>
-                        <div>
-                            <small>Backend API</small>
-                            <div class="w-full bg-gray-200 h-1.5 rounded">
-                                <div class="bg-blue-600 h-1.5 rounded w-[66%]"></div>
+                            <div class="text-xs text-gray-500 mt-1">
+                                Date: {{ grade.date | date:'dd.MM.yyyy HH:mm' }}
                             </div>
                         </div>
                     </div>
+
+                    <button class="mt-4 px-4 py-2 bg-sky-600 text-white rounded hover:bg-sky-700"
+                        *ngIf="user?.role?.toUpperCase() === 'STUDENT' && studentId != null"
+                        (click)="loadSubjectAverages(studentId!)">
+                        Show Subject Averages
+                    </button>
+
+
+                    <div *ngIf="showAverages && subjectAverages.length > 0" class="mt-4 bg-gray-50 rounded p-4">
+                        <h6 class="font-semibold mb-2 text-sky-700">Subject Averages</h6>
+                        <ul class="list-disc list-inside text-sm text-gray-700">
+                            <li *ngFor="let subj of subjectAverages">
+                                {{ subj.subject_name }}: {{ subj.average | number:'1.1-2' }}
+                            </li>
+                        </ul>
+                    </div>
+
+                    <ng-template #noGrades>
+                        <p class="text-sm text-gray-500">No grades available.</p>
+                    </ng-template>
+
                 </div>
+
+                <div class="md:col-span-2 flex justify-center mt-6" *ngIf="user?.role === 'STUDENT'">
+                    <a class="inline-block bg-teal-500 text-white px-6 py-3 rounded-lg hover:bg-teal-600 transition duration-200 shadow-md"
+                        [routerLink]="['/create-request']">
+                        Send Examination Request
+                    </a>
+                </div>
+
             </div>
             <!-- Teacher view -->
             <div *ngIf="user?.role === 'TEACHER'" class="md:col-span-3 mt-10">

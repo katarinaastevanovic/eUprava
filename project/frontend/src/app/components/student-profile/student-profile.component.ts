@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
-import { UserService, User, Absence } from '../../services/user/user.service';
+import { UserService, User, Absence, GradesResponse } from '../../services/user/user.service';
+import { AuthService } from '../../services/auth/auth.service';
 
 @Component({
   selector: 'app-student-profile',
@@ -14,45 +15,140 @@ import { UserService, User, Absence } from '../../services/user/user.service';
 })
 export class StudentProfileComponent implements OnInit {
   private userService = inject(UserService);
+  private authService = inject(AuthService);
   private route = inject(ActivatedRoute);
 
   student: User | null = null;
   absences: Absence[] = [];
+  gradesResponse: GradesResponse | null = null;
+  singleAverage: number | null = null;
+  certificateResult: boolean | null = null;
+  showGradeModal = false;
+  selectedGradeValue: number | null = null;
   loading = false;
   error = '';
 
   ngOnInit() {
-    const studentId = Number(this.route.snapshot.paramMap.get('id'));
-    if (studentId) {
-      this.loadStudent(studentId);
-      this.loadAbsences(studentId);
+    const routeStudentId = Number(this.route.snapshot.paramMap.get('id'));
+    console.log("Route student id:", routeStudentId);
+
+    if (routeStudentId) {
+      this.loadStudent(routeStudentId);
+      //this.loadAbsences(routeStudentId);
+
+      this.userService.getUserProfile().subscribe({
+        next: (user) => {
+          console.log("Ulogovani korisnik:", user);
+
+          this.userService.getTeacherByUserId(user.id).subscribe({
+            next: (teacher: any) => {
+              console.log("Teacher pronađen:", teacher);
+
+              const teacherId = teacher.id ?? teacher.ID;
+              const subjectId = teacher.subject_id ?? teacher.SubjectID;
+
+              // ✅ Umesto routeStudentId koristimo pravi student.id iz profila
+              this.userService.getUserById(routeStudentId).subscribe({
+                next: (studentProfile) => {
+                  console.log("Student profil:", studentProfile);
+                  const realStudentId = studentProfile.id; // backend-ov ID studenta
+
+                  console.log("Pozivam loadGrades sa:", realStudentId, subjectId, teacherId);
+                  this.loadGrades(realStudentId, subjectId, teacherId);
+                  this.loadAbsences(routeStudentId);
+                },
+                error: (err) => {
+                  console.error("Greška pri dohvatanju studenta", err);
+                  this.error = "Failed to load student profile";
+                }
+              });
+            },
+            error: (err) => {
+              console.error("Greška pri dohvatanju nastavnika", err);
+              this.error = "Failed to load teacher info";
+            }
+          });
+
+
+        },
+        error: (err) => {
+          console.error("Greška pri dohvatanju ulogovanog korisnika", err);
+          this.error = "Failed to get logged-in user info";
+        }
+      });
     }
   }
 
   loadStudent(id: number) {
-  this.loading = true;
-  this.userService.getUserById(id).subscribe({
-    next: (data: User) => {  
-      this.student = data;
-      this.loading = false;
+    this.loading = true;
+    this.userService.getUserById(id).subscribe({
+      next: (data: User) => {
+        this.student = data;
+        this.loading = false;
+      },
+      error: () => {
+        this.error = 'Failed to load student';
+        this.loading = false;
+      }
+    });
+  }
+
+  loadAbsences(studentId: number) {
+  this.userService.getStudentAbsences(studentId).subscribe({
+    next: (data) => {
+      const allAbsences = data.absences;
+
+      // ⬇️ filtriraj samo one koji pripadaju predmetu koji predaje nastavnik
+      if (this.gradesResponse?.subject_name) {
+        this.absences = allAbsences.filter(
+          a => a.subject === this.gradesResponse!.subject_name
+        );
+      } else {
+        this.absences = allAbsences;
+      }
+
+      console.log("Filtrirani izostanci:", this.absences);
     },
     error: () => {
-      this.error = 'Failed to load student';
-      this.loading = false;
+      this.error = 'Failed to load absences';
     }
   });
 }
 
-  loadAbsences(studentId: number) {
-    this.userService.getStudentAbsences(studentId).subscribe({
-      next: (data) => {
-        this.absences = data.absences;
-      },
-      error: () => {
-        this.error = 'Failed to load absences';
-      }
-    });
+
+  loadGrades(studentId: number, subjectId: number, teacherId: number) {
+    console.log("Pozivam loadGrades sa:", studentId, subjectId, teacherId);
+
+    this.userService.getGradesByStudentSubjectAndTeacher(studentId, subjectId, teacherId)
+      .subscribe({
+        next: (res) => {
+          console.log("RAW Dohvaćene ocene:", res);
+          const safeGrades = res.grades ?? [];
+          console.log("Safe grades:", safeGrades);
+
+          this.gradesResponse = { ...res, grades: safeGrades };
+          console.log("Postavljen gradesResponse:", this.gradesResponse);
+        },
+        error: (err) => {
+          console.error('Greška pri dohvatanju ocena', err);
+          this.error = 'Failed to load grades';
+        }
+      });
   }
+
+  loadSingleAverage(studentId: number, subjectId: number, teacherId: number) {
+  this.userService.getStudentSubjectTeacherAverage(studentId, subjectId, teacherId).subscribe({
+    next: (res) => {
+      this.singleAverage = res.average;
+      console.log('Single average:', res);
+    },
+    error: (err) => {
+      console.error('Greška pri dohvatanju proseka za jednog profesora', err);
+      this.error = 'Failed to load average';
+    }
+  });
+}
+
 
   onAbsenceTypeChange(absence: Absence) {
     this.userService.updateAbsenceType(absence.id, absence.type).subscribe({
@@ -63,4 +159,64 @@ export class StudentProfileComponent implements OnInit {
       }
     });
   }
+
+ checkCertificate() {
+  if (!this.student) {
+    this.error = "Nema podataka o studentu";
+    return;
+  }
+
+  const routeStudentId = Number(this.route.snapshot.paramMap.get('id'));
+  console.log("Route student id:", routeStudentId);
+
+  const token = this.authService.getToken();
+  if (!token) {  // ❌ proveravamo da li postoji token
+    this.error = "Niste ulogovani!";
+    return;
+  }
+
+  this.userService.checkStudentCertificate(routeStudentId, token).subscribe({
+    next: (res) => {
+      console.log("Certificate check response:", res);
+      this.certificateResult = res.hasCertificate;
+    },
+    error: (err) => {
+      console.error("Greška pri proveri sertifikata", err);
+      this.error = "Failed to check certificate";
+      this.certificateResult = null;
+    }
+  });
 }
+
+addGrade() {
+  if (!this.selectedGradeValue || !this.gradesResponse) {
+    this.error = "Please select a grade.";
+    return;
+  }
+
+  const payload = {
+    value: Number(this.selectedGradeValue), 
+    student_id: Number(this.gradesResponse.student_id),
+    subject_id: Number(this.gradesResponse.subject_id),
+    teacher_id: Number(this.gradesResponse.teacher_id)
+  };
+
+  console.log("Šaljem payload:", payload);
+
+  this.userService.createGrade(payload).subscribe({
+    next: (res) => {
+      console.log("Grade created:", res);
+      this.showGradeModal = false;
+      this.selectedGradeValue = null;
+      this.loadGrades(payload.student_id, payload.subject_id, payload.teacher_id);
+    },
+    error: (err) => {
+      console.error("Greška pri dodavanju ocene:", err);
+      this.error = "Failed to add grade";
+    }
+  });
+}
+
+
+}
+
