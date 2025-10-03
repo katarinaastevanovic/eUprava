@@ -16,8 +16,9 @@ export class StudentNotificationService {
   }
 
   markAsRead(userId: number, notifId: number): Observable<void> {
-    const token = localStorage.getItem('jwt') || '';
-    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-    return this.http.put<void>(`${this.apiUrl}users/${userId}/notifications/${notifId}/read`, {}, { headers });
-  }
+  const token = localStorage.getItem('jwt') || '';
+  const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+  return this.http.put<void>(`${this.apiUrl}users/${userId}/notifications/${notifId}/read`, {}, { headers });
+}
+
 }

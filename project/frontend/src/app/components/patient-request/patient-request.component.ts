@@ -19,12 +19,9 @@ export class PatientRequestsComponent implements OnInit {
   constructor(private requestService: ExaminationRequestService) {}
 
   ngOnInit() {
-    this.patientId = this.getUserIdFromToken();
-    if (this.patientId) {
-      this.loadDoctors();
-      this.loadRequests();
-    }
-  }
+  this.loadDoctors();
+  this.loadRequests();
+}
 
   getUserIdFromToken(): number {
     const token = localStorage.getItem('jwt');
@@ -36,20 +33,20 @@ export class PatientRequestsComponent implements OnInit {
   }
 
   loadRequests() {
-    this.requestService.getRequestsByPatient(this.patientId).subscribe(
-      res => {
-        this.requests = res.map((r: any) => ({
-          id: r.id,
-          medicalRecordId: r.medicalRecordId,
-          doctorId: r.doctorId,
-          type: r.type,
-          status: r.status
-        }));
-        console.log('Mapped requests:', this.requests);
-      },
-      err => console.error(err)
-    );
-  }
+  this.requestService.getRequestsByPatient().subscribe(
+    res => {
+      this.requests = res.map((r: any) => ({
+        id: r.id,
+        medicalRecordId: r.medicalRecordId,
+        doctorId: r.doctorId,
+        type: r.type,
+        status: r.status
+      }));
+      console.log('Mapped requests:', this.requests);
+    },
+    err => console.error(err)
+  );
+}
 
   loadDoctors() {
     this.requestService.getDoctors().subscribe(

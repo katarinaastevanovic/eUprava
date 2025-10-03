@@ -149,6 +149,7 @@ private isFullMedicalRecord(obj: any): obj is FullMedicalRecord {
 
     this.medicalRecordService.updateRecord(updatedRecord).subscribe({
       next: (data) => {
+        this.getRecord(); 
         this.record = data;
         this.allergies = data.allergies;
         this.chronicDiseases = data.chronicDiseases;
