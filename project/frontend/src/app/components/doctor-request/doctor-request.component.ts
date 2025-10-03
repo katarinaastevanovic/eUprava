@@ -42,7 +42,7 @@ export class DoctorRequestsComponent implements OnInit {
 
   loadRequests(page: number = 1) {
     this.currentPage = page;
-    let sortParam = this.sortPending ? 'requestedFirst' : '';
+    const sortParam = this.sortPending ? 'requestedFirst' : '';
 
     console.log('Loading requests:', {
       page,
@@ -66,7 +66,6 @@ export class DoctorRequestsComponent implements OnInit {
     }, err => console.error(err));
   }
 
-
   onSearch() {
     this.loadRequests(1);
   }
@@ -84,7 +83,7 @@ export class DoctorRequestsComponent implements OnInit {
   }
 
   goToPage(page: number) {
-    this.loadRequests(page);
+    if (page !== -1) this.loadRequests(page);
   }
 
   approveRequest(requestId: number) {
@@ -93,5 +92,30 @@ export class DoctorRequestsComponent implements OnInit {
 
   rejectRequest(requestId: number) {
     this.requestService.rejectRequest(requestId).subscribe(() => this.loadRequests(this.currentPage));
+  }
+
+  getPagesToShow(): number[] {
+    const pages: number[] = [];
+    const total = this.totalPages;
+    const current = this.currentPage;
+
+    if (total <= 3) {
+      for (let i = 1; i <= total; i++) pages.push(i);
+    } else {
+      pages.push(1);
+
+      if (current > 3) pages.push(-1);
+
+      const start = Math.max(2, current - 1);
+      const end = Math.min(total - 1, current + 1);
+
+      for (let i = start; i <= end; i++) pages.push(i);
+
+      if (current < total - 2) pages.push(-1);
+
+      pages.push(total);
+    }
+
+    return pages;
   }
 }

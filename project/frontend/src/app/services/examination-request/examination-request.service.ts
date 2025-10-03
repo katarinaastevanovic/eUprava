@@ -52,8 +52,8 @@ export class ExaminationRequestService {
     return this.http.post<Request>(`${this.apiGatewayUrl}/school/requests`, request, this.getAuthHeaders());
   }
 
-  getRequestsByPatient(patientId: number): Observable<Request[]> {
-    return this.http.get<Request[]>(`${this.apiGatewayUrl}/medical/requests/patient/${patientId}`, this.getAuthHeaders());
+  getRequestsByPatient(): Observable<Request[]> {
+    return this.http.get<Request[]>(`${this.apiGatewayUrl}/medical/requests/patient`, this.getAuthHeaders());
   }
 
   getRequestsByDoctorPaginated(
@@ -90,15 +90,15 @@ export class ExaminationRequestService {
   }
 
   getApprovedRequestsByDoctorFiltered(
-  doctorId: number,
-  page: number = 1,
-  search: string = '',
-  type: string = ''
-): Observable<{ requests: RequestWithStudent[]; totalPages: number }> {
-  let url = `${this.apiGatewayUrl}/medical/requests/doctor/${doctorId}/approved?page=${page}`;
-  if (search) url += `&search=${encodeURIComponent(search)}`;
-  if (type) url += `&type=${encodeURIComponent(type)}`;
-  return this.http.get<{ requests: RequestWithStudent[]; totalPages: number }>(url, this.getAuthHeaders());
-}
+    doctorId: number,
+    page: number = 1,
+    search: string = '',
+    type: string = ''
+  ): Observable<{ requests: RequestWithStudent[]; totalPages: number }> {
+    let url = `${this.apiGatewayUrl}/medical/requests/doctor/${doctorId}/approved?page=${page}`;
+    if (search) url += `&search=${encodeURIComponent(search)}`;
+    if (type) url += `&type=${encodeURIComponent(type)}`;
+    return this.http.get<{ requests: RequestWithStudent[]; totalPages: number }>(url, this.getAuthHeaders());
+  }
 
 }

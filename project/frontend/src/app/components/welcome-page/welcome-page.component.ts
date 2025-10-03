@@ -1,21 +1,23 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { CommonModule } from '@angular/common'; 
+import { CommonModule } from '@angular/common';
+import { AuthService } from '../../services/auth/auth.service';
 
 @Component({
   selector: 'app-welcome-page',
-  standalone: true,           
-  imports: [CommonModule],   
+  standalone: true,
+  imports: [CommonModule],
   templateUrl: './welcome-page.component.html',
-  styleUrls: ['./welcome-page.component.css'] 
+  styleUrls: ['./welcome-page.component.css']
 })
 export class WelcomePageComponent implements OnInit {
   isLoggedIn = false;
-
-  constructor(public router: Router) {}
+  authService = inject(AuthService);
+  router = inject(Router);
 
   ngOnInit(): void {
-    const token = localStorage.getItem('jwt');
-    this.isLoggedIn = !!token;
+    this.authService.userRole$.subscribe(role => {
+      this.isLoggedIn = role !== null;
+    });
   }
 }

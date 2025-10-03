@@ -9,15 +9,22 @@ import (
 	"strings"
 )
 
-func CreateRequest(req *models.Request) error {
-	req.Status = models.REQUESTED
-	if err := database.DB.Create(req).Error; err != nil {
-		return err
+func CreateRequest(userId uint, doctorId uint, reqType models.TypeOfExamination, needCert *bool) (*models.Request, error) {
+	record, err := GetMedicalRecordByUserId(userId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get medical record: %w", err)
 	}
 
-	var record models.MedicalRecord
-	if err := database.DB.First(&record, req.MedicalRecordId).Error; err != nil {
-		fmt.Println("Failed to get medical record:", err)
+	newReq := &models.Request{
+		MedicalRecordId:        record.ID,
+		DoctorId:               doctorId,
+		Type:                   reqType,
+		Status:                 models.REQUESTED,
+		NeedMedicalCertificate: needCert,
+	}
+
+	if err := database.DB.Create(newReq).Error; err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
 	var patient models.Patient
@@ -26,14 +33,13 @@ func CreateRequest(req *models.Request) error {
 	}
 
 	studentName := getStudentNameFromAuth(patient.UserId)
+	message := fmt.Sprintf("You have a new examination request from %s. Type: %s.", studentName, reqType)
 
-	message := fmt.Sprintf("You have a new examination request from %s. Type: %s.", studentName, req.Type)
-
-	if err := CreateNotification(req.DoctorId, message); err != nil {
+	if err := CreateNotification(doctorId, message); err != nil {
 		fmt.Println("Failed to create notification:", err)
 	}
 
-	return nil
+	return newReq, nil
 }
 
 func GetRequestsByPatientUser(userId uint) ([]models.Request, error) {
@@ -44,7 +50,11 @@ func GetRequestsByPatientUser(userId uint) ([]models.Request, error) {
 
 	var requests []models.Request
 	err = database.DB.Where("medical_record_id = ?", record.ID).Find(&requests).Error
-	return requests, err
+	if err != nil {
+		return nil, err
+	}
+
+	return requests, nil
 }
 
 func GetMedicalRecordByUserId(userId uint) (*models.MedicalRecord, error) {
