@@ -16,7 +16,7 @@ export class HeaderComponent implements OnInit {
   showNotificationsSidebar = false;
   notifications: Notification[] = [];
   userId: number = 0;
-  role: 'STUDENT' | 'DOCTOR' | null = null;
+  role: 'STUDENT' | 'DOCTOR' | 'TEACHER' | null = null;
 
   constructor(
     private authService: AuthService,

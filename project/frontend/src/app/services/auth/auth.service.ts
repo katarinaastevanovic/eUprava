@@ -12,7 +12,7 @@ export class AuthService {
 
   private apiGatewayUrl = 'http://localhost:8080/api/auth';
 
-  private userRoleSubject = new BehaviorSubject<'STUDENT' | 'DOCTOR' | null>(this.getRoleFromToken());
+  private userRoleSubject = new BehaviorSubject<'STUDENT' | 'DOCTOR' | 'TEACHER' | null>(this.getRoleFromToken());
   userRole$ = this.userRoleSubject.asObservable();
 
   private userIdSubject = new BehaviorSubject<number>(this.getUserIdFromToken());
@@ -35,14 +35,14 @@ export class AuthService {
     return this.http.post(`${this.apiGatewayUrl}/firebase-login`, { idToken });
   }
 
-loginWithEmail(email: string, password: string) {
-  return this.http.post<{ token: string }>(`${this.apiGatewayUrl}/login`, { email, password })
-    .pipe(
-      tap(res => {
-        localStorage.setItem('jwt', res.token); 
-      })
-    );
-}
+  loginWithEmail(email: string, password: string) {
+    return this.http.post<{ token: string }>(`${this.apiGatewayUrl}/login`, { email, password })
+      .pipe(
+        tap(res => {
+          localStorage.setItem('jwt', res.token);
+        })
+      );
+  }
 
   completeProfile(profile: any) {
     return this.http.post(`${this.apiGatewayUrl}/complete-profile`, profile);
@@ -52,7 +52,7 @@ loginWithEmail(email: string, password: string) {
     try {
       await signOut(this.auth);
       localStorage.removeItem('jwt');
-      this.updateAuthState(); 
+      this.updateAuthState();
     } catch (err) {
       console.error('Firebase logout error', err);
     }
@@ -63,7 +63,7 @@ loginWithEmail(email: string, password: string) {
     this.userIdSubject.next(this.getUserIdFromToken());
   }
 
-  getRole(): 'STUDENT' | 'DOCTOR' | null {
+  getRole(): 'STUDENT' | 'DOCTOR' | 'TEACHER' | null {
     return this.userRoleSubject.value;
   }
 
@@ -71,17 +71,24 @@ loginWithEmail(email: string, password: string) {
     return this.userIdSubject.value;
   }
 
-  private getRoleFromToken(): 'STUDENT' | 'DOCTOR' | null {
+  private getRoleFromToken(): 'STUDENT' | 'DOCTOR' | 'TEACHER' | null {
     const token = localStorage.getItem('jwt');
     if (!token) return null;
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
+
       if (Array.isArray(payload.roles)) {
         if (payload.roles.includes('STUDENT')) return 'STUDENT';
         if (payload.roles.includes('DOCTOR')) return 'DOCTOR';
+        if (payload.roles.includes('TEACHER')) return 'TEACHER';
       }
-      return payload.role?.toUpperCase() === 'STUDENT' ? 'STUDENT' :
-             payload.role?.toUpperCase() === 'DOCTOR' ? 'DOCTOR' : null;
+
+      switch (payload.role?.toUpperCase()) {
+        case 'STUDENT': return 'STUDENT';
+        case 'DOCTOR': return 'DOCTOR';
+        case 'TEACHER': return 'TEACHER';
+        default: return null;
+      }
     } catch {
       return null;
     }
@@ -99,7 +106,6 @@ loginWithEmail(email: string, password: string) {
   }
 
   getToken(): string | null {
-  return localStorage.getItem('jwt');
-}
-
+    return localStorage.getItem('jwt');
+  }
 }
